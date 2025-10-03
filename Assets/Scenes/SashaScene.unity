@@ -13568,8 +13568,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyArray:
-  - {fileID: 729205261085227188, guid: 44c2d0ad7df039943873503b4b64cde4, type: 3}
-  - {fileID: 729205261085227188, guid: 92ebfe69771f0c344bfed34336a8a4cb, type: 3}
+  - {fileID: 3402224979142320849, guid: 549e85a8a25ad634eb079cc4d71fbae9, type: 3}
+  - {fileID: 542372227045031690, guid: 69c7e147ee2b6a0489470ff84cb93f8c, type: 3}
+  - {fileID: 2922274003462047160, guid: 83e95252f5249ee42acd10c6177dfc18, type: 3}
+  - {fileID: 3847040594459190940, guid: 10f81a05c04109a46a9b132d2d8cb6b0, type: 3}
+  - {fileID: 4123160664191989382, guid: 0eca9bf06e8e80b4c8a1901bbc3f299c, type: 3}
   spawnInterval: 1
   areaMin: {x: -8, y: -8}
   areaMax: {x: 8, y: 8}
