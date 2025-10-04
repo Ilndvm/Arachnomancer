@@ -1,5 +1,4 @@
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 [RequireComponent(typeof(Animator))]
 public class Enemy_SlimeKing : EnemyBase
