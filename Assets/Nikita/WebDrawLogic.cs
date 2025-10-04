@@ -48,7 +48,7 @@ public class WebDrawLogic : MonoBehaviour
 
 
     public bool drawable;
-
+    public bool drawingCanceled;
     public event System.Action<int, int> OnEdgeCreated; // fired when a new edge is added
     public event System.Action OnResetEvent;            // fired when ResetGraph() completes
 
@@ -79,7 +79,7 @@ public class WebDrawLogic : MonoBehaviour
         public override string ToString() => "(" + a + "," + b + ")";
     }
 
-    void Start()
+    public void Init()
     {
         // Expect: outer(N) + inner(N) + center(1)
         _ringCount = (buttons.Length - 1) / 2;
@@ -182,7 +182,7 @@ public class WebDrawLogic : MonoBehaviour
     {
         if (index < 0 || index >= buttons.Length) return;
         if (!CanConnect(_currentIndex, index)) return;
-        if (WebDrawCoordinator.Instance.strings < 1) return;
+        if (WebDrawCoordinator.Instance.bloodDrops < 1) return;
         var edge = new Edge(_currentIndex, index);
 
         // duplicate: blink existing line and do not move selection
@@ -195,7 +195,7 @@ public class WebDrawLogic : MonoBehaviour
 
         var from = _previousPoint;
         var to = buttons[index].transform as RectTransform;
-        WebDrawCoordinator.Instance.strings--;
+        WebDrawCoordinator.Instance.bloodDrops--;
         var line = DrawLineBetween(from, to);
         if (line == null) return;
 
@@ -211,12 +211,12 @@ public class WebDrawLogic : MonoBehaviour
     }
 
     // ---------- reset & logging ----------
-    public void ResetGraph()
+    public void ResetGraph(bool reuseString = false)
     {
         // recycle active lines
         foreach (var kv in _activeLines)
         {
-            WebDrawCoordinator.Instance.strings++;
+            if(drawable && reuseString) WebDrawCoordinator.Instance.bloodDrops++;
             Recycle(kv.Value);
         }
         _activeLines.Clear();
@@ -228,8 +228,8 @@ public class WebDrawLogic : MonoBehaviour
             
             ApplyButtonColor(i, colorIdle);
         }
-        
 
+        drawingCanceled = false;
         // return to center
         _currentIndex = _centerIndex;
         _previousPoint = buttons[_centerIndex].transform as RectTransform;
@@ -241,7 +241,7 @@ public class WebDrawLogic : MonoBehaviour
         }
     }
 
-    void LogEdges()
+    public void LogEdges()
     {
         var list = new List<Edge>(_edges);
         list.Sort((e1, e2) =>

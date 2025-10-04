@@ -9,6 +9,7 @@ public class Settings : ScriptableObject
     [System.Serializable]
     public class Upgrade
     {
+        public bool isChosen = false;
         public UpgradeType upgradeType;
         public bool isUnique;
         public string description;
@@ -20,6 +21,10 @@ public class Settings : ScriptableObject
             this.isUnique = isUnique;
             this.description = description;
             this.pattern = pattern;
+        }
+        public bool CanBeChosen()
+        {
+            return !(isUnique && isChosen);
         }
     }
 
