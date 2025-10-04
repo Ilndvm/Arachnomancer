@@ -1,4 +1,4 @@
-using UnityEngine;
+using UnityEngine; 
 
 [RequireComponent(typeof(Animator))]
 public class Enemy_Slime : EnemyBase

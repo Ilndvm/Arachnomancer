@@ -22,12 +22,23 @@ public class EnemySpawnerManager : MonoBehaviour
     [SerializeField] private GameObject[][] pools;
 
     [SerializeField] private float[] arrayProbabilities = {12f, 12f, 12f, 12f, 12f, 10f, 10f, 8.5f, 5.5f, 4f, 2f};
+
+    [Header("Wave")]
+    [SerializeField] private float countdownTime = 120;
+    [SerializeField] private float currentTime;
+    [SerializeField] private float currentWave = 1; // optinal for now
     [SerializeField] private int activeAmountOfPrefabs = 2;
 
     public static EnemySpawnerManager Instance { get; private set; }
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
 
         wait = new WaitForSeconds(spawnInterval);
@@ -35,14 +46,28 @@ public class EnemySpawnerManager : MonoBehaviour
 
     private void Start()
     {
-        //StartCoroutine(SpawnLoop());
+        StartCoroutine(SpawnLoop());
+        currentTime = countdownTime;
     }
+
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
             TryProbabilitySpawn();
+        }
+        currentTime -= Time.deltaTime;
+
+        if (currentTime < 0)
+        {
+            currentTime = 0;
+            if (activeAmountOfPrefabs < GameManager.Instance.GetEnemyPrefabs().Length)
+            {
+                activeAmountOfPrefabs++;
+            }
+            currentWave++;
+            currentTime = countdownTime;
         }
     }
 
@@ -59,7 +84,7 @@ public class EnemySpawnerManager : MonoBehaviour
     {
         while (true)
         {
-           // TrySpawnFromPools();
+            TryProbabilitySpawn();
             yield return wait; // fixed interval
         }
     }
