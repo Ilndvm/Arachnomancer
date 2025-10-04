@@ -151,7 +151,8 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         gameObject.SetActive(false);
-        
+        var d = GameManager.Instance.GetDeathParticle();
+        d.transform.position = transform.position;
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
@@ -160,6 +161,7 @@ public class EnemyBase : MonoBehaviour
         if (player != null)
         {
             player.TakeDamage(contactDamage);
+            Die();
         }
     }
 }

@@ -170,6 +170,8 @@ MonoBehaviour:
   - {fileID: 8901020314464408781, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
   floatingTextPoolSize: 10
   floatingTextPrefab: {fileID: 6139563655895798334, guid: 3e7abb9f3b9c7fd42acf4ee5d9058326, type: 3}
+  deathParticlePoolSize: 10
+  deathParticlePrefab: {fileID: 3569119288232929295, guid: 6e399d0f2c0aa394fb9a2ba981eb1400, type: 3}
 --- !u!4 &124918476
 Transform:
   m_ObjectHideFlags: 0

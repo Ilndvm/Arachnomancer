@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
     private ObjectPool<FloatingText> floatingTextPool;
     [SerializeField] private FloatingText floatingTextPrefab;
 
+    [SerializeField] private int deathParticlePoolSize = 10;
+    private ObjectPool<DestroyAfterParticles> deathParticlePool;
+    [SerializeField] private DestroyAfterParticles deathParticlePrefab;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -54,6 +57,9 @@ public class GameManager : MonoBehaviour
 
         floatingTextPool = new ObjectPool<FloatingText>(floatingTextPrefab);
         floatingTextPool.Populate(floatingTextPoolSize);
+
+        deathParticlePool = new ObjectPool<DestroyAfterParticles>(deathParticlePrefab);
+        deathParticlePool.Populate(deathParticlePoolSize);
     }
 
     /// <summary>0 = Mine, 1 = Simple, 2 = Follow</summary>
@@ -70,5 +76,14 @@ public class GameManager : MonoBehaviour
     public FloatingText GetFloatingText()
     {
         return floatingTextPool.GetPooledObject();
+    }
+    public DestroyAfterParticles GetDeathParticle()
+    {
+        return deathParticlePool.GetPooledObject();
+    }
+
+    public EnemyBase[] GetEnemyPrefabs()
+    {
+        return enemyPrefabs;
     }
 }

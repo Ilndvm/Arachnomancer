@@ -159,8 +159,8 @@ MonoBehaviour:
   enemyPrefabs:
   - {fileID: 2873383306980578669, guid: 0eca9bf06e8e80b4c8a1901bbc3f299c, type: 3}
   - {fileID: 8465071508177576714, guid: 69c7e147ee2b6a0489470ff84cb93f8c, type: 3}
-  - {fileID: 9159978470515017895, guid: 83e95252f5249ee42acd10c6177dfc18, type: 3}
   - {fileID: 3014257536825031868, guid: 10f81a05c04109a46a9b132d2d8cb6b0, type: 3}
+  - {fileID: 9159978470515017895, guid: 83e95252f5249ee42acd10c6177dfc18, type: 3}
   - {fileID: 6048554347879446760, guid: 549e85a8a25ad634eb079cc4d71fbae9, type: 3}
   - {fileID: 65030880343824010, guid: 9b872c55ca3b9ad40a4a895f1f6aa159, type: 3}
   - {fileID: 1969097744276445708, guid: ce7ab62e30369da44b8cff2364825287, type: 3}
@@ -170,6 +170,8 @@ MonoBehaviour:
   - {fileID: 8901020314464408781, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
   floatingTextPoolSize: 10
   floatingTextPrefab: {fileID: 6139563655895798334, guid: 3e7abb9f3b9c7fd42acf4ee5d9058326, type: 3}
+  deathParticlePoolSize: 10
+  deathParticlePrefab: {fileID: 3569119288232929295, guid: 6e399d0f2c0aa394fb9a2ba981eb1400, type: 3}
 --- !u!4 &124918476
 Transform:
   m_ObjectHideFlags: 0
@@ -214,6 +216,9 @@ MonoBehaviour:
   - 5.5
   - 4
   - 2
+  countdownTime: 120
+  currentTime: 0
+  currentWave: 1
   activeAmountOfPrefabs: 2
 --- !u!1 &519420028
 GameObject:
@@ -17541,63 +17546,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!1001 &2082991663
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1557182164310647815, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_Name
-      value: SlimeKing
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3664677629723609900, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 5294c0956df24a743b661b36b49f67a9, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -17609,4 +17557,3 @@ SceneRoots:
   - {fileID: 671321036}
   - {fileID: 1730191516}
   - {fileID: 124918476}
-  - {fileID: 2082991663}
