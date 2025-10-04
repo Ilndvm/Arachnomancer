@@ -1,4 +1,6 @@
-using Unity.Mathematics;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,136 +9,408 @@ public class WebDrawLogic : MonoBehaviour
     [Header("A thin Image used as the line")]
     public Image linePrefab;
 
-    [Header("Buttons to connect (use at least 2)")]
+    [Header("Buttons: 0-11 Outer, 12-23 Inner, 24 Center")]
     public Button[] buttons;
 
-    [Header("Optional: where to spawn lines (e.g., a 'Lines' RectTransform under the Canvas)")]
+    [Header("Where to spawn line Images (assign a RectTransform under your Canvas)")]
     public Transform lineParent;
 
     [Tooltip("Shorten the line on each end (pixels)")]
     public float endPadding = 0f;
 
-    private RectTransform _previousPoint;
-    private RectTransform _secondPoint;
+    [Header("Pooling")]
+    [Min(0)] public int initialPoolSize = 24;
 
+    
+
+    [Header("Selection Colors")]
+    public Color32 colorIdle = new Color32(255, 0, 0, 255);
+    public Color32 colorSelected = new Color32(255, 0, 255, 255);
+
+    private RectTransform _previousPoint;
     private int _currentIndex;
 
+    // layout derived from array
+    private int _ringCount;      // 12
+    private int _innerStart;     // 12
+    private int _centerIndex;    // 24
 
-    private int _half;
+    // ---------- pooling ----------
+    private readonly Queue<Image> _pool = new Queue<Image>();
+    private Transform _defaultParent;
+
+    // active lines & edges
+    private readonly Dictionary<Edge, Image> _activeLines = new Dictionary<Edge, Image>();
+    private readonly HashSet<Edge> _edges = new HashSet<Edge>();
+
+    // blinking guard
+    private readonly HashSet<Image> _blinkBusy = new HashSet<Image>();
+
+
+    public bool drawable;
+
+    public event System.Action<int, int> OnEdgeCreated; // fired when a new edge is added
+    public event System.Action OnResetEvent;            // fired when ResetGraph() completes
+
+    public bool TryGetLineImage(int a, int b, out Image img)
+    {
+        img = null;
+        if (a < 0 || b < 0 || a >= buttons.Length || b >= buttons.Length) return false;
+        var e = new Edge(a, b);
+        return _activeLines.TryGetValue(e, out img);
+    }
+
+    public void SetAllLinesColor(Color32 color)
+    {
+        foreach (var kv in _activeLines)
+            if (kv.Value) kv.Value.color = color;
+    }
+    // undirected edge normalized as (min,max)
+    private readonly struct Edge : System.IEquatable<Edge>
+    {
+        public readonly int a, b;
+        public Edge(int i, int j)
+        {
+            if (i <= j) { a = i; b = j; } else { a = j; b = i; }
+        }
+        public bool Equals(Edge other) => a == other.a && b == other.b;
+        public override bool Equals(object obj) => obj is Edge e && Equals(e);
+        public override int GetHashCode() => (a * 397) ^ b;
+        public override string ToString() => "(" + a + "," + b + ")";
+    }
+
     void Start()
     {
+        // Expect: outer(N) + inner(N) + center(1)
+        _ringCount = (buttons.Length - 1) / 2;
+        _innerStart = _ringCount;
+        _centerIndex = buttons.Length - 1;
+
+        // clicks
         for (int i = 0; i < buttons.Length; i++)
         {
-            var button = buttons[i];
-
-
-            int idx = i;
-            button.onClick.AddListener(() => OnButtonClicked(idx));
+            int idx = i; // capture
+            
+            if (buttons[i])
+            {
+                buttons[i].enabled = drawable;
+                if (!drawable) continue;
+                buttons[i].onClick.AddListener(() => OnButtonClicked(idx));
+            }
+                
         }
-        _currentIndex = buttons.Length-1;
-        _previousPoint = buttons[_currentIndex].transform as RectTransform;
-        //buttons[_currentIndex].enabled = false;
-        _half = ((buttons.Length - 1) / 2);
 
+        // parent for pooled lines (no GetComponentInParent as requested)
+        _defaultParent = lineParent
+            ? lineParent
+            : (buttons.Length > 0 ? buttons[0].GetComponent<Canvas>()?.transform : null);
 
+        // prewarm pool
+        if (linePrefab && initialPoolSize > 0 && _defaultParent)
+        {
+            for (int i = 0; i < initialPoolSize; i++)
+            {
+                var img = Instantiate(linePrefab, _defaultParent);
+                img.raycastTarget = false;
+                img.gameObject.SetActive(false);
+                _pool.Enqueue(img);
+            }
+        }
+
+        // start from center and color selection
+        //ApplyButtonColor(_centerIndex, colorSelected);
+        ResetGraph();
     }
-    bool IsNeighbor(int current, int other, int count)
+
+    void Update()
+    {/*
+        if (!drawable) return;
+        
+        if (Input.GetKeyDown(KeyCode.R))
+            ResetGraph();
+
+        if (Input.GetKeyDown(KeyCode.Space))
+            LogEdges();
+        */
+        
+    }
+
+    // ---------- adjacency logic ----------
+    enum Ring { Outer, Inner, Center, Invalid }
+    Ring GetRing(int index)
     {
-        int d = (other - current + count) % count;     // ring distance forward
-        return d == 1 || d == count - 1;               // next or previous
+        if (index == _centerIndex) return Ring.Center;
+        if (index >= 0 && index < _ringCount) return Ring.Outer;
+        if (index >= _innerStart && index < _innerStart + _ringCount) return Ring.Inner;
+        return Ring.Invalid;
     }
+
+    int Mod(int a, int m) => (a % m + m) % m;
+    int RingIndex(int idx) => Mod(idx, _ringCount);           // 0..ringCount-1
+    bool IsSameRadial(int a, int b) => RingIndex(a) == RingIndex(b);
+    bool IsRingNeighbor(int a, int b)
+    {
+        if (GetRing(a) != GetRing(b)) return false;
+        int d = Mod(RingIndex(b) - RingIndex(a), _ringCount);
+        return d == 1 || d == _ringCount - 1; // +-1 (wrap)
+    }
+
+    bool CanConnect(int current, int next)
+    {
+        var rCur = GetRing(current);
+        var rNxt = GetRing(next);
+
+        if (rCur == Ring.Center) return rNxt == Ring.Inner; // center -> inner
+        if (rCur == Ring.Inner)
+        {
+            if (rNxt == Ring.Inner && IsRingNeighbor(current, next)) return true; // inner neighbors
+            if (rNxt == Ring.Outer && IsSameRadial(current, next)) return true;   // radial out
+            if (rNxt == Ring.Center) return true;                                 // back to center
+            return false;
+        }
+        if (rCur == Ring.Outer)
+        {
+            if (rNxt == Ring.Outer && IsRingNeighbor(current, next)) return true; // outer neighbors
+            if (rNxt == Ring.Inner && IsSameRadial(current, next)) return true;   // radial in
+            return false;                                                         // no center from outer
+        }
+        return false;
+    }
+
+    // ---------- clicks ----------
     void OnButtonClicked(int index)
     {
-        Debug.Log($"Clicked button index: {index}");
-        Debug.Log(_half);
+        if (index < 0 || index >= buttons.Length) return;
+        if (!CanConnect(_currentIndex, index)) return;
+        if (WebDrawCoordinator.Instance.strings < 1) return;
+        var edge = new Edge(_currentIndex, index);
 
-        if(_currentIndex == buttons.Length-1 && index >= _half ) 
-        { _secondPoint = buttons[index].transform as RectTransform;
-           
-        }
-        else if(_currentIndex >= _half && index == buttons.Length - 1)
+        // duplicate: blink existing line and do not move selection
+        if (_edges.Contains(edge))
         {
-            _secondPoint = buttons[index].transform as RectTransform;
+            if (_activeLines.TryGetValue(edge, out var existing))
+                StartCoroutine(BlinkLine(existing, 0.4f, 2));
+            return;
         }
 
-        else if((_currentIndex != buttons.Length - 1))
-        {
-            if(_currentIndex>= _half  )
-            {
-                if (_currentIndex - _half == index)
-                {
-                    _secondPoint = buttons[index].transform as RectTransform;
-                    
-                }
-                else if(IsNeighbor(_currentIndex,index,_half))
-                {
-                    _secondPoint = buttons[index].transform as RectTransform;
-                   
-                }
-                
-            }
-            else if (_currentIndex < _half  )
-            {
-                if (_currentIndex + _half == index)
-                {
-                    _secondPoint = buttons[index].transform as RectTransform;
-                    
-                }
-                else if (IsNeighbor(_currentIndex, index, _half))
-                {
-                    _secondPoint = buttons[index].transform as RectTransform;
-                    
-                }
-            }
-            
+        var from = _previousPoint;
+        var to = buttons[index].transform as RectTransform;
+        WebDrawCoordinator.Instance.strings--;
+        var line = DrawLineBetween(from, to);
+        if (line == null) return;
 
-        }
+        _activeLines[edge] = line;
+        _edges.Add(edge);
+        OnEdgeCreated?.Invoke(edge.a, edge.b);
+        // update selection colors
+        ApplyButtonColor(_currentIndex, colorIdle);
+        ApplyButtonColor(index, colorSelected);
 
-        if (_secondPoint == null) return;
-        DrawLineBetween(_previousPoint, _secondPoint);
-        _previousPoint = buttons[index].transform as RectTransform;
-        _secondPoint = null;
+        _previousPoint = to;
         _currentIndex = index;
-        //buttons[_currentIndex].enabled = false;
-
-
-        // optional: also log its name
-        // Debug.Log($"[{index}] {buttons[index].name}");
     }
 
-    void DrawLineBetween(RectTransform from, RectTransform to)
+    // ---------- reset & logging ----------
+    public void ResetGraph()
     {
-        // Spawn the line under the given parent (fallback: canvas root)
-        Transform parent = lineParent;
-        if (!parent)
+        // recycle active lines
+        foreach (var kv in _activeLines)
         {
-            var canvas = from.GetComponent<Canvas>();
-            if (canvas) parent = canvas.transform;
+            WebDrawCoordinator.Instance.strings++;
+            Recycle(kv.Value);
+        }
+        _activeLines.Clear();
+        _edges.Clear();
+
+        // colors: set all to idle red, then center to selected magenta
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            
+            ApplyButtonColor(i, colorIdle);
+        }
+        
+
+        // return to center
+        _currentIndex = _centerIndex;
+        _previousPoint = buttons[_centerIndex].transform as RectTransform;
+
+        OnResetEvent?.Invoke();
+        if (drawable)
+        {
+            ApplyButtonColor(_centerIndex, colorSelected);
+        }
+    }
+
+    void LogEdges()
+    {
+        var list = new List<Edge>(_edges);
+        list.Sort((e1, e2) =>
+        {
+            int c = e1.a.CompareTo(e2.a);
+            return c != 0 ? c : e1.b.CompareTo(e2.b);
+        });
+
+        var sb = new StringBuilder();
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (i > 0) sb.Append(",");
+            sb.Append(list[i].ToString()); // (a,b)
+        }
+        Debug.Log(sb.Length > 0 ? sb.ToString() : "(empty)");
+    }
+
+    // ---------- draw-by-list (Q) ----------
+    /*
+    void DrawPresetEdges()
+    {
+        var edges = ParseEdgesString(presetEdges);
+        if (edges.Count == 0)
+        {
+            Debug.Log("No edges parsed from presetEdges.");
+            return;
+        }
+        DrawEdgesInstant(edges);
+    }*/
+
+    // Draws edges instantly: no movement checks, does not change selection.
+    // Skips duplicates and blinks the existing line instead.
+    private void DrawEdgesInstant(IEnumerable<Edge> edges)
+    {
+        foreach (var e in edges)
+        {
+            if (_edges.Contains(e))
+            {
+                if (_activeLines.TryGetValue(e, out var img))
+                    StartCoroutine(BlinkLine(img, 0.4f, 2));
+                continue;
+            }
+
+            if (e.a < 0 || e.a >= buttons.Length || e.b < 0 || e.b >= buttons.Length)
+                continue;
+
+            var from = buttons[e.a].transform as RectTransform;
+            var to = buttons[e.b].transform as RectTransform;
+            if (from == null || to == null) continue;
+
+            var line = DrawLineBetween(from, to);
+            if (line == null) continue;
+
+            _activeLines[e] = line;
+            _edges.Add(e);
+            OnEdgeCreated?.Invoke(e.a, e.b);
+        }
+    }
+
+    // Parser for strings like: (14,15),(14,24),(15,16)
+    
+
+   
+
+    // ---------- pooling + drawing ----------
+    Image GetLineFromPool()
+    {
+        Image line;
+        if (_pool.Count > 0)
+        {
+            line = _pool.Dequeue();
+        }
+        else
+        {
+            if (!linePrefab || !_defaultParent)
+            {
+                Debug.LogWarning("Line pool: missing prefab or parent.");
+                return null;
+            }
+            line = Instantiate(linePrefab, _defaultParent);
         }
 
-        Image line = Instantiate(linePrefab, parent);
+        if (lineParent && line.transform.parent != lineParent)
+            line.transform.SetParent(lineParent, false);
+        line.raycastTarget = false;
+        line.gameObject.SetActive(true);
+        return line;
+    }
+
+    void Recycle(Image img)
+    {
+        if (!img) return;
+        img.gameObject.SetActive(false);
+        _pool.Enqueue(img);
+    }
+
+    Image DrawLineBetween(RectTransform from, RectTransform to)
+    {
+        var line = GetLineFromPool();
+        if (!line) return null;
+
         RectTransform rt = line.rectTransform;
+        var parentRT = (RectTransform)rt.parent;
 
-        // World-space centers of the rects
-        Vector3 a = from.TransformPoint(from.rect.center);
-        Vector3 b = to.TransformPoint(to.rect.center);
+        // 1) World positions of rect centers
+        Vector3 aWorld = from.TransformPoint(from.rect.center);
+        Vector3 bWorld = to.TransformPoint(to.rect.center);
 
-        Vector3 dir = b - a;
-        float len = dir.magnitude;
-        if (len < 0.001f) return;
+        // 2) Direction in world (for rotation only)
+        Vector3 dirWorld = bWorld - aWorld;
+        float lenWorld = dirWorld.magnitude;
+        if (lenWorld < 0.001f)
+        {
+            Recycle(line);
+            return null;
+        }
 
-        // Position at midpoint
-        rt.position = a + dir * 0.5f;
-
-        // Rotate to face B
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        // 3) Midpoint & rotation (world space is fine here)
+        rt.position = aWorld + dirWorld * 0.5f;
+        float angle = Mathf.Atan2(dirWorld.y, dirWorld.x) * Mathf.Rad2Deg;
         rt.rotation = Quaternion.Euler(0, 0, angle);
 
-        // Set line length along X (keep Y as thickness from prefab)
-        float adjusted = Mathf.Max(0f, len - endPadding * 2f);
-        rt.sizeDelta = new Vector2(adjusted, rt.sizeDelta.y);
+        // 4) Length in the LINE'S PARENT LOCAL SPACE (this removes double scaling)
+        Vector3 aLocal = parentRT.InverseTransformPoint(aWorld);
+        Vector3 bLocal = parentRT.InverseTransformPoint(bWorld);
+        float lenLocal = (bLocal - aLocal).magnitude;
 
-        // Make sure it doesn't block button clicks
-        line.raycastTarget = false;
+        // 5) Stretch along X using LOCAL length
+        float adjustedLocal = Mathf.Max(0f, lenLocal - endPadding * 2f);
+        rt.sizeDelta = new Vector2(adjustedLocal, rt.sizeDelta.y);
+
+        return line;
+    }
+
+    // ---------- visuals ----------
+    void ApplyButtonColor(int index, Color32 col)
+    {
+        if (index < 0 || index >= buttons.Length) return;
+        var img = buttons[index] ? buttons[index].GetComponent<Image>() : null;
+        if (img) img.color = col;
+    }
+
+    IEnumerator BlinkLine(Image img, float duration, int pulses)
+    {
+        if (img == null) yield break;
+        if (_blinkBusy.Contains(img)) yield break;
+
+        _blinkBusy.Add(img);
+        Color original = img.color;
+        float half = duration / (pulses * 2f);
+
+        for (int i = 0; i < pulses; i++)
+        {
+            img.color = new Color(original.r, original.g, original.b, 0.35f);
+            yield return new WaitForSeconds(half);
+            img.color = original;
+            yield return new WaitForSeconds(half);
+        }
+
+        img.color = original;
+        _blinkBusy.Remove(img);
+    }
+
+    // ---------- optional: public API to draw from tuple list ----------
+    // Use this from other scripts if you prefer passing tuples.
+    public void DrawEdgesInstant(IEnumerable<(int a, int b)> pairs)
+    {
+        var edges = new List<Edge>();
+        foreach (var p in pairs) edges.Add(new Edge(p.a, p.b));
+        DrawEdgesInstant(edges);
     }
 }
