@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class EnemySpawnerManager : MonoBehaviour
 {
-    [SerializeField] private GameObject[] enemyArray;
-
     [Header("Timing")]
     [SerializeField] private float spawnInterval = 1f;
 
@@ -13,15 +11,10 @@ public class EnemySpawnerManager : MonoBehaviour
     [SerializeField] private Vector2 areaMax = new Vector2(8f, 8f);
 
     [Header("Player Avoidance")]
-    [SerializeField] private Transform playerRef;
     [SerializeField] private float minDistanceFromPlayer = 4f;
 
     [Header("Safety")]
     [SerializeField] private int maxAttemptsPerSpawn = 20;
-
-    [Header("Pool Settings")]
-    [Tooltip("How many instances of each prefab to create at start.")]
-    [SerializeField] private int prewarmPerPrefab = 16;
 
     private WaitForSeconds wait;
 
@@ -38,8 +31,6 @@ public class EnemySpawnerManager : MonoBehaviour
         Instance = this;
 
         wait = new WaitForSeconds(spawnInterval);
-
-        Prewarm();
     }
 
     private void Start()
@@ -62,40 +53,16 @@ public class EnemySpawnerManager : MonoBehaviour
         spawnInterval = Mathf.Max(0.01f, spawnInterval);
         minDistanceFromPlayer = Mathf.Max(0f, minDistanceFromPlayer);
         maxAttemptsPerSpawn = Mathf.Max(1, maxAttemptsPerSpawn);
-        prewarmPerPrefab = Mathf.Max(1, prewarmPerPrefab);
-    }
-
-    private void Prewarm()
-    {
-        if (enemyArray == null || enemyArray.Length == 0) return;
-
-        pools = new GameObject[enemyArray.Length][];
-
-        for (int i = 0; i < enemyArray.Length; i++)
-        {
-            var prefab = enemyArray[i];
-            if (!prefab) continue;
-
-            var arr = new GameObject[prewarmPerPrefab];
-            for (int j = 0; j < prewarmPerPrefab; j++)
-            {
-                var inst = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-                inst.SetActive(false);
-                arr[j] = inst;
-            }
-            pools[i] = arr;
-        }
     }
 
     private IEnumerator SpawnLoop()
     {
         while (true)
         {
-            TrySpawnFromPools();
+           // TrySpawnFromPools();
             yield return wait; // fixed interval
         }
     }
-
 
     private void TryProbabilitySpawn()
     {
@@ -119,84 +86,15 @@ public class EnemySpawnerManager : MonoBehaviour
 
             if (random <= cumulative)
             {
-                Debug.Log($"SUM: {sum}; COEFF: {coeff}; PROBABILITY: {(int)arrayProbabilities[j] * coeff}; RANDOM: {random}; CUMULATIVE: {cumulative}; INDEX: {j + 1}; SPAWNED: {enemyArray[j].name}");
-                //SpawnEnemy(index);
+                Debug.Log($"SUM: {sum}; COEFF: {coeff}; PROBABILITY: {(int)arrayProbabilities[j] * coeff}; RANDOM: {random}; CUMULATIVE: {cumulative}; INDEX: {j + 1};");
 
-                var arr = pools[j];
-
-                // Find first inactive instance
-                for (int k = 0; k < arr.Length; k++)
-                {
-                    var go = arr[k];
-                    if (!go) continue;
-                    if (!go.activeSelf)
-                    {
-                        // Activate and place
-                        go.transform.SetParent(null, true);
-                        go.transform.position = pos;
-                        go.transform.rotation = Quaternion.identity;
-                        go.SetActive(true);
-                        return;
-                    }
-                }
+                EnemyBase enemy = GameManager.Instance.GetEnemy(j);
+                enemy.SetPosition(pos);
                 return;
             }
         }
     }
 
-    private void TrySpawnFromPools()
-    {
-        if (enemyArray == null || enemyArray.Length == 0) return;
-        if (!FindValidSpawn(out Vector2 pos)) return;
-
-        // Start from a random prefab index; try each once
-        int start = Random.Range(0, enemyArray.Length);
-        for (int k = 0; k < enemyArray.Length; k++)
-        {
-            int i = (start + k) % enemyArray.Length;
-            var arr = pools[i];
-            if (arr == null) continue;
-
-            // Find first inactive instance
-            for (int j = 0; j < arr.Length; j++)
-            {
-                var go = arr[j];
-                if (!go) continue;
-                if (!go.activeSelf)
-                {
-                    // Activate and place
-                    go.transform.SetParent(null, true);
-                    go.transform.position = pos;
-                    go.transform.rotation = Quaternion.identity;
-                    go.SetActive(true);
-                    return;
-                }
-            }
-        }
-    }
-
-    private void TrySpawnFromPools(int index, Vector2 pos)
-    {
-        if (enemyArray == null || enemyArray.Length == 0) return;
-
-        var arr = pools[index];
-
-        // Find first inactive instance
-        for (int j = 0; j < arr.Length; j++)
-        {
-            var go = arr[j];
-            if (!go) continue;
-            if (!go.activeSelf)
-            {
-                // Activate and place
-                go.transform.SetParent(null, true);
-                go.transform.position = pos;
-                go.transform.rotation = Quaternion.identity;
-                go.SetActive(true);
-                return;
-            }
-        }
-    }
 
     private bool FindValidSpawn(out Vector2 spawnPos)
     {
@@ -209,9 +107,9 @@ public class EnemySpawnerManager : MonoBehaviour
                 Random.Range(areaMin.y, areaMax.y)
             );
 
-            if (playerRef)
+            if (GameManager.Instance.player)
             {
-                float sqrDist = ((Vector2)playerRef.position - candidate).sqrMagnitude;
+                float sqrDist = ((Vector2)GameManager.Instance.player.transform.position - candidate).sqrMagnitude;
                 if (sqrDist < minDistanceFromPlayer * minDistanceFromPlayer)
                     continue;
             }
@@ -221,12 +119,5 @@ public class EnemySpawnerManager : MonoBehaviour
         }
 
         return false;
-    }
-
-    /// Call this instead of Destroy(gameObject)
-    public static void Despawn(GameObject go)
-    {
-        if (!go) return;
-        go.SetActive(false);
     }
 }

@@ -195,3 +195,4 @@ MonoBehaviour:
   attackRange: 1
   attackCooldown: 1
   invulnAfterHitSeconds: 0.2
+  lastAttackTime: 0

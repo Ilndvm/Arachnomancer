@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D), typeof(SpriteRenderer))]
 public class EnemyBase : MonoBehaviour
@@ -103,11 +104,19 @@ public class EnemyBase : MonoBehaviour
             SetFlip(dir.x < 0);
         }
     }
+    public virtual void SetPosition(Vector2 pos)
+    {
+        transform.position = pos;
+    }
 
     protected void SetFlip(bool flip)
     {
         if (spriteRenderer != null && spriteRenderer.flipX != flip)
             spriteRenderer.flipX = flip;
+    }
+    protected void SetInvulnerable(bool v)
+    {
+        isInvulnerable = v;
     }
 
     protected virtual void Attack()
@@ -119,6 +128,9 @@ public class EnemyBase : MonoBehaviour
     public virtual void TakeDamage(int amount)
     {
         if (isInvulnerable) return;
+
+        FloatingText t = GameManager.Instance.GetFloatingText();
+        t.Init(transform.position, "-" + amount);
 
         currentHealth -= amount;
         StartCoroutine(TemporaryInvuln(invulnAfterHitSeconds));
@@ -139,6 +151,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         gameObject.SetActive(false);
+        
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D other)

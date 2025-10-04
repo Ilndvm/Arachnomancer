@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 [RequireComponent(typeof(Animator))]
 public class Enemy_MediumSlime : EnemyBase
@@ -21,7 +22,6 @@ public class Enemy_MediumSlime : EnemyBase
         isMoving = false;
     }
 
-    /// </summary>
     protected override void MoveToPlayer()
     {
         Vector2 currentPos = rb.position;
@@ -55,5 +55,13 @@ public class Enemy_MediumSlime : EnemyBase
     { 
         base.Die();
         // spawn two smaller slimes
+        EnemyBase enemy1 = GameManager.Instance.GetEnemy(0);
+        enemy1.SetPosition(new Vector2(transform.position.x + 0.5f, transform.position.y));
+
+        EnemyBase enemy2 = GameManager.Instance.GetEnemy(0);
+        enemy2.SetPosition(new Vector2(transform.position.x - 0.5f, transform.position.y));
+
+        EnemyBase enemy3 = GameManager.Instance.GetEnemy(0);
+        enemy3.SetPosition(new Vector2(transform.position.x, transform.position.y + 0.5f));
     }
 }
