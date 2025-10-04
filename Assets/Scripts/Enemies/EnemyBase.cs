@@ -23,7 +23,7 @@ public class EnemyBase : MonoBehaviour
     protected SpriteRenderer spriteRenderer;
     protected SpiderController player;
 
-    float lastAttackTime = -999f;
+    [HideInInspector] public float lastAttackTime = 0f;
     bool isInvulnerable = false;
 
     protected virtual void Awake()
@@ -113,10 +113,7 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Attack()
     {
         if (Time.time - lastAttackTime < attackCooldown) return;
-
         lastAttackTime = Time.time;
-
-        animator.SetTrigger("Attack");
     }
 
     public virtual void TakeDamage(int amount)

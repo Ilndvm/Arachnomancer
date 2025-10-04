@@ -33,6 +33,7 @@ namespace MiniGame.UsukiFrenzy
 
             targetPos = player.transform.position;
 
+            animator.SetTrigger("Attack");
             StartCoroutine(LungeRoutine());
         }
 
