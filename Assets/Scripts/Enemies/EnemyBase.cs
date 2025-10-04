@@ -12,6 +12,8 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] protected float moveSpeed = 2f;
     [SerializeField] protected float attackRange = 1f; // stop moving when inside this range
     [SerializeField] protected float attackCooldown = 1.0f;
+    [Range(0f,100f)]
+    [SerializeField] protected float dropChance = 50.0f;
 
 
     [SerializeField] protected float invulnAfterHitSeconds = 0.2f;
@@ -151,6 +153,14 @@ public class EnemyBase : MonoBehaviour
     protected virtual void Die()
     {
         gameObject.SetActive(false);
+
+        float random = Random.Range(1f, 100f);
+        if (random <= dropChance) 
+        {
+            var s = GameManager.Instance.GetString();
+            s.transform.position = transform.position;
+        }
+
         var d = GameManager.Instance.GetDeathParticle();
         d.transform.position = transform.position;
     }
@@ -161,7 +171,6 @@ public class EnemyBase : MonoBehaviour
         if (player != null)
         {
             player.TakeDamage(contactDamage);
-            Die();
         }
     }
 }

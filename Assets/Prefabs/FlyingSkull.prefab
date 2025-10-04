@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 932175569957512582}
   - component: {fileID: 4700825088088796657}
   - component: {fileID: 314743710119609828}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: FlyingSkull
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,5 +194,6 @@ MonoBehaviour:
   moveSpeed: 2
   attackRange: 3
   attackCooldown: 1
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

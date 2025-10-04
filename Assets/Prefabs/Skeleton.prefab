@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8829476207548269794}
   - component: {fileID: 2069195167912071929}
   - component: {fileID: 8368519746991420589}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Skeleton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,5 +204,6 @@ MonoBehaviour:
   moveSpeed: 2
   attackRange: 3
   attackCooldown: 1
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

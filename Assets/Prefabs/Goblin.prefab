@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 390497555793697690}
   - component: {fileID: 1117174364102238454}
   - component: {fileID: 1969097744276445708}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Goblin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,6 +204,7 @@ MonoBehaviour:
   moveSpeed: 3
   attackRange: 0
   attackCooldown: 2
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0
   mine: {fileID: 4699920586988376372, guid: 10e9745331e57e94885f358d5b7ccb5b, type: 3}

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6366445565631392357}
   - component: {fileID: 5042470469258313608}
   - component: {fileID: 9159978470515017895}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Fly
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,5 +194,6 @@ MonoBehaviour:
   moveSpeed: 4.5
   attackRange: 0
   attackCooldown: 0
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

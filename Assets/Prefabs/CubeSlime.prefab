@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 240963142225807333}
   - component: {fileID: 2418107354252290120}
   - component: {fileID: 8465071508177576714}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: CubeSlime
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,5 +204,6 @@ MonoBehaviour:
   moveSpeed: 1.5
   attackRange: 1
   attackCooldown: 1
+  dropChance: 50
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

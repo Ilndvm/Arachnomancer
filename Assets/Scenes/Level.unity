@@ -172,6 +172,11 @@ MonoBehaviour:
   floatingTextPrefab: {fileID: 6139563655895798334, guid: 3e7abb9f3b9c7fd42acf4ee5d9058326, type: 3}
   deathParticlePoolSize: 10
   deathParticlePrefab: {fileID: 3569119288232929295, guid: 6e399d0f2c0aa394fb9a2ba981eb1400, type: 3}
+  stringsPoolSize: 10
+  stringsPrefab: {fileID: 6469500082281511492, guid: 7badf7e53f0cf9644a83ff2b1964a39f, type: 3}
+  playerProjectilePoolSize: 10
+  playerProjectilePrefab: {fileID: 3674544316001595354, guid: c3af4bba872e44f43a065ddddbe7e75c, type: 3}
+  strings: 0
 --- !u!4 &124918476
 Transform:
   m_ObjectHideFlags: 0
@@ -194,7 +199,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 124918474}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 37faea45cba93954d82758f96d087de9, type: 3}
   m_Name: 
@@ -216,7 +221,7 @@ MonoBehaviour:
   - 5.5
   - 4
   - 2
-  countdownTime: 120
+  countdownTime: 15
   currentTime: 0
   currentWave: 1
   activeAmountOfPrefabs: 2
@@ -17243,9 +17248,9 @@ GameObject:
   - component: {fileID: 1818200079}
   - component: {fileID: 1818200078}
   - component: {fileID: 1818200084}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Spider
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17394,7 +17399,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!114 &1818200080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17408,6 +17413,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
+  maxHP: 100
+  regenRate: 1
+  regenDelay: 5
+  projectileDamage: 1
+  scanRange: 3
+  fireRate: 1
+  scanInterval: 0.15
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!95 &1818200081
 Animator:
   serializedVersion: 7

@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     public SpiderController player;
 
+    #region Pools
+
     [Space(10f)]
     [Header("Pools")]
     [SerializeField] private int projectilePoolSize = 10;
@@ -24,6 +26,18 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int deathParticlePoolSize = 10;
     private ObjectPool<DestroyAfterParticles> deathParticlePool;
     [SerializeField] private DestroyAfterParticles deathParticlePrefab;
+
+    [SerializeField] private int stringsPoolSize = 10;
+    private ObjectPool<String> stringsPool;
+    [SerializeField] private String stringsPrefab;
+
+    [SerializeField] private int playerProjectilePoolSize = 10;
+    private ObjectPool<PlayerProjectile> playerProjectilePool;
+    [SerializeField] private PlayerProjectile playerProjectilePrefab;
+    #endregion
+
+    public int strings = 0;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -60,6 +74,12 @@ public class GameManager : MonoBehaviour
 
         deathParticlePool = new ObjectPool<DestroyAfterParticles>(deathParticlePrefab);
         deathParticlePool.Populate(deathParticlePoolSize);
+
+        stringsPool = new ObjectPool<String>(stringsPrefab);
+        stringsPool.Populate(stringsPoolSize);
+
+        playerProjectilePool = new ObjectPool<PlayerProjectile>(playerProjectilePrefab);
+        playerProjectilePool.Populate(playerProjectilePoolSize);
     }
 
     /// <summary>0 = Mine, 1 = Simple, 2 = Follow</summary>
@@ -81,7 +101,14 @@ public class GameManager : MonoBehaviour
     {
         return deathParticlePool.GetPooledObject();
     }
-
+    public String GetString()
+    {
+        return stringsPool.GetPooledObject();
+    }
+    public PlayerProjectile GetPlayerProjectile()
+    {
+        return playerProjectilePool.GetPooledObject();
+    }
     public EnemyBase[] GetEnemyPrefabs()
     {
         return enemyPrefabs;

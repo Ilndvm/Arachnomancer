@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4052456542100963788}
   - component: {fileID: 5154697828141137780}
   - component: {fileID: 8901020314464408781}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: SlimeKing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,5 +194,6 @@ MonoBehaviour:
   moveSpeed: 3.5
   attackRange: 1
   attackCooldown: 1
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

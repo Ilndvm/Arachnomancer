@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5674089272283862795}
   - component: {fileID: 2970145442316567697}
   - component: {fileID: 3014257536825031868}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Rat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,5 +204,6 @@ MonoBehaviour:
   moveSpeed: 4
   attackRange: 1
   attackCooldown: 1
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

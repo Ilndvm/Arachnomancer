@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5179966891623103340}
   - component: {fileID: 3785059044130144576}
   - component: {fileID: 6048554347879446760}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Bat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,6 +204,7 @@ MonoBehaviour:
   moveSpeed: 4
   attackRange: 1
   attackCooldown: 1.5
+  dropChance: 50
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0
   lungeOutTime: 0.18

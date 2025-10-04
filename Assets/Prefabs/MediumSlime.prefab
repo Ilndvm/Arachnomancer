@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5093521146549621034}
   - component: {fileID: 8409036042226833508}
   - component: {fileID: 65030880343824010}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: MediumSlime
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -194,5 +194,6 @@ MonoBehaviour:
   moveSpeed: 2
   attackRange: 0
   attackCooldown: 0
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0

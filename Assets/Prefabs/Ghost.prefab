@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6380543258784048195}
   - component: {fileID: 5255883310315670947}
   - component: {fileID: 2666700613828135627}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Ghost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,6 +204,7 @@ MonoBehaviour:
   moveSpeed: 2
   attackRange: 1
   attackCooldown: 1
+  dropChance: 1
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0
   toggleInterval: 1
