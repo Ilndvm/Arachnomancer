@@ -56,7 +56,7 @@ public class SpiderController : MonoBehaviour
     void FixedUpdate()
     {
         // Move using physics-friendly velocity assignment
-        rb.linearVelocity = moveInput * moveSpeed;
+        rb.linearVelocity = moveInput * moveSpeed * UpgradeManager.Instance.GetSpeedMultiplier();
     }
 
     void Update()
@@ -126,6 +126,11 @@ public class SpiderController : MonoBehaviour
             currentHP += regenRate * Time.deltaTime;
             if (currentHP > maxHP) currentHP = maxHP;
         }
+    }
+
+    public void UpdateMaxHP()
+    {
+        maxHP = maxHP + UpgradeManager.Instance.GetBonusHP();
     }
 
     private void Die()

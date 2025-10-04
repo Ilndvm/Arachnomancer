@@ -1,49 +1,54 @@
 using UnityEngine;
 
-//[CreateAssetMenu(fileName = "Settings", menuName = "Settings")]
-//public class Settings : ScriptableObject
-//{
-//    [Header("Enemy Types")]
-//    [SerializeField] public Upgrade[] UpgradesArray;
+[CreateAssetMenu(fileName = "Settings", menuName = "Settings")]
+public class Settings : ScriptableObject
+{
+    [Header("Enemy Types")]
+    [SerializeField] public Upgrade[] UpgradeArray;
 
-//    [System.Serializable]
-//    public class Upgrade
-//    {
-//        public UpgradeType enemyType;
-//        public int maxHP = 0;
-//        public int pointValue = 0;
-//        public float sLimit = 0;
+    [System.Serializable]
+    public class Upgrade
+    {
+        public UpgradeType upgradeType;
+        public bool isUnique;
+        public string description;
+        public WebDrawCoordinator.Pattern pattern; 
 
-//        public Upgrade(UpgradeType upgradeType, int maxHP, int pointValue, float sLimit)
-//        {
-//            this.enemyType = enemyType;
-//            this.maxHP = maxHP;
-//            this.pointValue = pointValue;
-//            this.sLimit = sLimit;
-//        }
-//    }
+        public Upgrade(UpgradeType upgradeType, bool isUnique, string description, WebDrawCoordinator.Pattern pattern)
+        {
+            this.upgradeType = upgradeType;
+            this.isUnique = isUnique;
+            this.description = description;
+            this.pattern = pattern;
+        }
+    }
 
-//    public enum UpgradeType
-//    {
-//        RamNova,
-//        MechNova,
-//        FireNova,
-//        MineNova,
-//        PulsarNova,
-//        DarkNova,
-//        SuperNova,
-//        UltraNova,
-//        BossNova
-//    }
-//    public Upgrade GetEnemy(UpgradeType enemyType)
-//    {
-//        foreach (Enemy enemy in EnemyArray)
-//        {
-//            if (enemy.enemyType == enemyType)
-//            {
-//                return new Enemy(enemy.enemyType, enemy.maxHP, enemy.pointValue, enemy.sLimit);
-//            }
-//        }
-//        return null;
-//    }
-//}
+    public enum UpgradeType
+    {
+        BonusHP,
+        BonusSpeed,
+        BonusFireRate,
+        BonusDamage,
+        BonusLuck,
+        Regeneration,
+        LifeSteal,
+        Slowness,
+        Ricochet,
+        Shield,
+        Explosion,
+        Poison,
+        Magnet,
+        Fireball
+    }
+    public Upgrade GetUpgrade(UpgradeType upgradeType)
+    {
+        foreach (Upgrade upgrade in UpgradeArray)
+        {
+            if (upgrade.upgradeType == upgradeType)
+            {
+                return new Upgrade(upgrade.upgradeType, upgrade.isUnique, upgrade.description, upgrade.pattern);
+            }
+        }
+        return null;
+    }
+}
