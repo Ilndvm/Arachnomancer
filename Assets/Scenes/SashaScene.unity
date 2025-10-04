@@ -13580,6 +13580,19 @@ MonoBehaviour:
   minDistanceFromPlayer: 4
   maxAttemptsPerSpawn: 20
   prewarmPerPrefab: 4
+  arrayProbabilities:
+  - 12
+  - 12
+  - 12
+  - 12
+  - 12
+  - 10
+  - 10
+  - 8.5
+  - 5.5
+  - 4
+  - 2
+  activeAmountOfPrefabs: 5
 --- !u!4 &1567014338
 Transform:
   m_ObjectHideFlags: 0

@@ -28,6 +28,9 @@ public class EnemySpawnerManager : MonoBehaviour
     // Plain arrays: one array per prefab holding its instances
     [SerializeField] private GameObject[][] pools;
 
+    [SerializeField] private float[] arrayProbabilities = {12f, 12f, 12f, 12f, 12f, 10f, 10f, 8.5f, 5.5f, 4f, 2f};
+    [SerializeField] private int activeAmountOfPrefabs = 2;
+
     public static EnemySpawnerManager Instance { get; private set; }
 
     private void Awake()
@@ -41,7 +44,15 @@ public class EnemySpawnerManager : MonoBehaviour
 
     private void Start()
     {
-        StartCoroutine(SpawnLoop());
+        //StartCoroutine(SpawnLoop());
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            TryProbabilitySpawn();
+        }
     }
 
     private void OnValidate()
@@ -82,6 +93,54 @@ public class EnemySpawnerManager : MonoBehaviour
         {
             TrySpawnFromPools();
             yield return wait; // fixed interval
+        }
+    }
+
+
+    private void TryProbabilitySpawn()
+    {
+        if (!FindValidSpawn(out Vector2 pos)) return;
+
+        float sum = 0f, coeff;
+
+        for (int i = 0; i < activeAmountOfPrefabs; i++)
+        {
+            sum += arrayProbabilities[i];
+        }
+
+        coeff = 100 / sum;
+
+        int random = (int)Random.Range(1f, 100f);
+        float cumulative = 0;
+
+        for (int j = 0; j < activeAmountOfPrefabs; j++)
+        {
+            cumulative += arrayProbabilities[j] * coeff;
+
+            if (random <= cumulative)
+            {
+                Debug.Log($"SUM: {sum}; COEFF: {coeff}; PROBABILITY: {(int)arrayProbabilities[j] * coeff}; RANDOM: {random}; CUMULATIVE: {cumulative}; INDEX: {j + 1}; SPAWNED: {enemyArray[j].name}");
+                //SpawnEnemy(index);
+
+                var arr = pools[j];
+
+                // Find first inactive instance
+                for (int k = 0; k < arr.Length; k++)
+                {
+                    var go = arr[k];
+                    if (!go) continue;
+                    if (!go.activeSelf)
+                    {
+                        // Activate and place
+                        go.transform.SetParent(null, true);
+                        go.transform.position = pos;
+                        go.transform.rotation = Quaternion.identity;
+                        go.SetActive(true);
+                        return;
+                    }
+                }
+                return;
+            }
         }
     }
 
