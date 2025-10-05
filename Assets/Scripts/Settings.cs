@@ -43,7 +43,7 @@ public class Settings : ScriptableObject
         Explosion,
         Poison,
         Magnet,
-        Fireball
+        TwoTargets
     }
     public Upgrade GetUpgrade(UpgradeType upgradeType)
     {

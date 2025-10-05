@@ -34,6 +34,10 @@ public class SpiderController : MonoBehaviour
     private float lastShotTime = -999f;
     private float fireCooldown => 1f / Mathf.Max(0.0001f, fireRate * UpgradeManager.Instance.GetFireRateMultiplier());
 
+
+
+    public bool twoTargets;
+    private Transform secondTarget;
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -198,10 +202,28 @@ public class SpiderController : MonoBehaviour
         if (nearest != null)
         {
             currentTarget = nearest;
+            if (twoTargets)
+            {
+                foreach (var c in hits)
+                {
+                    if (c == null || c == currentTarget) continue;
+                    var enemyComp = c.GetComponent<EnemyBase>();
+                    if (enemyComp == null) continue;
+
+                    float sqr = ((Vector2)c.transform.position - (Vector2)transform.position).sqrMagnitude;
+                    if (sqr < bestSqr)
+                    {
+                        bestSqr = sqr;
+                        nearest = c.transform;
+                        secondTarget = nearest;
+                    }
+                }
+            }
             isShooting = true;
             // ensure shot timer allows immediate shot if desired:
             // lastShotTime = Time.time - fireCooldown; // uncomment to allow instant first shot
         }
+        
     }
 
     private void HandleShooting()
@@ -239,6 +261,13 @@ public class SpiderController : MonoBehaviour
             var p = GameManager.Instance.GetPlayerProjectile();
             p.Init(projectileDamage + UpgradeManager.Instance.GetDamageBonus());
             p.MoveToTarget(transform.position, currentTarget.position);
+
+            if (secondTarget != null && twoTargets)
+            {
+                p = GameManager.Instance.GetPlayerProjectile();
+                p.Init(projectileDamage + UpgradeManager.Instance.GetDamageBonus());
+                p.MoveToTarget(transform.position, secondTarget.position);
+            }
 
         }
     }
