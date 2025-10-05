@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 public class UpgradeManager : MonoBehaviour
 {
@@ -27,9 +28,9 @@ public class UpgradeManager : MonoBehaviour
     [SerializeField] public int poison = 1; // poison damage every sec
     [SerializeField] public float poisonTime = 5f;
     [SerializeField] public float explosionRadius = 1.5f; // used by Explosion unique (gameplay must use this)
+    [SerializeField] public float shield = 10f;
 
-    [SerializeField] private float shield = 25f;
-    [SerializeField] private float fireball = 1.2f; // used by Explosion unique (gameplay must use this)
+
 
     // Event so UI / other systems can react
     public event Action OnUpgradesChanged;
@@ -82,30 +83,76 @@ public class UpgradeManager : MonoBehaviour
         return true;
     }
 
+    // Add at top of file if missing:
+    // using System.Text;
+
+    public string GetStackableUpgradesString()
+    {
+        if (settings == null) return string.Empty;
+
+        var sb = new StringBuilder();
+
+        foreach (Settings.UpgradeType t in Enum.GetValues(typeof(Settings.UpgradeType)))
+        {
+            var def = settings.GetUpgrade(t);
+            if (def == null) continue;
+
+            // skip uniques, only show stackable upgrades
+            if (def.isUnique) continue;
+
+            int count = GetStackCount(t);
+            sb.AppendLine($"{t}: {count}");
+        }
+
+        return sb.ToString().TrimEnd('\r', '\n');
+    }
+
+    public string GetUniqueUpgradesString()
+    {
+        if (settings == null) return string.Empty;
+
+        var sb = new StringBuilder();
+
+        foreach (Settings.UpgradeType t in Enum.GetValues(typeof(Settings.UpgradeType)))
+        {
+            var def = settings.GetUpgrade(t);
+            if (def == null) continue;
+
+            // skip stackables, only show uniques
+            if (!def.isUnique) continue;
+
+            bool haveIt = HasUnique(t);
+            sb.AppendLine($"{t}: {(haveIt ? "O" : "X")}");
+        }
+
+        return sb.ToString().TrimEnd('\r', '\n');
+    }
+
+
     public float GetBonusHP()
     {
-        return GetStackCount(Settings.UpgradeType.BonusHP) * hpPerStack;
+        return GetStackCount(Settings.UpgradeType.HP) * hpPerStack;
     }
 
     public float GetSpeedMultiplier()
     {
-        int stacksCount = GetStackCount(Settings.UpgradeType.BonusSpeed);
+        int stacksCount = GetStackCount(Settings.UpgradeType.Speed);
         return 1f + stacksCount * speedMultiplierPerStack;
     }
 
     public float GetFireRateMultiplier()
     {
-        int stacksCount = GetStackCount(Settings.UpgradeType.BonusFireRate);
+        int stacksCount = GetStackCount(Settings.UpgradeType.FireRate);
         return 1f + stacksCount * fireRateMultiplierPerStack;
     }
 
     public int GetDamageBonus()
     {
-        return GetStackCount(Settings.UpgradeType.BonusDamage) * damagePerStack;
+        return GetStackCount(Settings.UpgradeType.Damage) * damagePerStack;
     }
     public int GetLuckBonus()
     {
-        return GetStackCount(Settings.UpgradeType.BonusLuck) * luckPerStack;
+        return GetStackCount(Settings.UpgradeType.Luck) * luckPerStack;
     }
     public float GetMagnetBonus()
     {
@@ -123,7 +170,7 @@ public class UpgradeManager : MonoBehaviour
     public bool HasRicochet => HasUnique(Settings.UpgradeType.Ricochet);
     public bool HasShield => HasUnique(Settings.UpgradeType.Shield);
     public bool HasExplosion => HasUnique(Settings.UpgradeType.Explosion);
-    public bool HasFireball => HasUnique(Settings.UpgradeType.Fireball);
+    public bool HasTwoTargets => HasUnique(Settings.UpgradeType.TwoTargets);
     public bool HasPoison => HasUnique(Settings.UpgradeType.Poison);
 
     private void ApplyUniqueEffect(Settings.UpgradeType t)
@@ -162,7 +209,7 @@ public class UpgradeManager : MonoBehaviour
         // Called when a stackable upgrade receives +1 stack — allow immediate effects if desired.
         switch (t)
         {
-            case Settings.UpgradeType.BonusHP:
+            case Settings.UpgradeType.HP:
                 player.UpdateMaxHP();
                 break;
             

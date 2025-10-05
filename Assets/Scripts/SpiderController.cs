@@ -23,10 +23,18 @@ public class SpiderController : MonoBehaviour
     [SerializeField] private float scanInterval = 0.15f;
     [SerializeField] public LayerMask enemyLayer = ~0; // which layers to consider when scanning (default = everything)
 
+    [Header("Shield")]
+    [SerializeField] private float shieldCooldown = 10f;  // how long between activations
+    // runtime timers
+    private bool isShieldActive = false;
+    private float shieldCooldownTimer = 0f;
+
     [SerializeField] private CircleCollider2D magnet;
+    [SerializeField] private GameObject shield;
     private float initialMagnetRadius;
     // runtime
     private Transform currentTarget;
+    private Transform secondTarget;
     private bool isShooting = false;
 
     // timers
@@ -34,10 +42,6 @@ public class SpiderController : MonoBehaviour
     private float lastShotTime = -999f;
     private float fireCooldown => 1f / Mathf.Max(0.0001f, fireRate * UpgradeManager.Instance.GetFireRateMultiplier());
 
-
-
-    public bool twoTargets;
-    private Transform secondTarget;
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -85,6 +89,7 @@ public class SpiderController : MonoBehaviour
 
         // passive regen
         HandleRegen();
+        HandleShield();
     }
 
     #region Input / Movement
@@ -106,11 +111,68 @@ public class SpiderController : MonoBehaviour
         animator.SetFloat("InputY", moveInput.y);
     }
     #endregion
+    public void HandleShield()
+    {
+        // safety checks
+        if (!UpgradeManager.Instance.HasShield)
+        {
+            if (isShieldActive)
+                DeactivateShield();
 
+            // keep cooldown reset so it won't activate if upgrade is off
+            shieldCooldownTimer = shieldCooldown;
+            return;
+        }
+
+        if (isShieldActive) return;
+
+        // If shield is not active, count down cooldown and activate when it reaches zero.
+        if (shieldCooldownTimer > 0f)
+        {
+            shieldCooldownTimer -= Time.deltaTime;
+            if (shieldCooldownTimer <= 0f)
+            {
+                ActivateShield();
+            }
+        }
+        else
+        {
+            ActivateShield();
+        }
+    }
+
+    private void ActivateShield()
+    {
+        if (shield == null) return;
+        shield.SetActive(true);
+        isShieldActive = true;
+
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ShieldActivate);
+
+        // TODO: play shield spawn VFX / SFX
+    }
+
+    public void DeactivateShield()
+    {
+        if (shield == null) return;
+        shield.SetActive(false);
+        isShieldActive = false;
+
+        // Reset cooldown so next activation waits full cooldown
+        shieldCooldownTimer = shieldCooldown;
+
+        // TODO: play shield end VFX / SFX
+    }
     #region Health / Regen
     public void TakeDamage(float damage)
     {
         if (damage <= 0f) return;
+
+        if (isShieldActive)
+        {
+            DeactivateShield();
+            return;
+        }
 
         currentHP -= damage;
         lastDamageTime = Time.time;
@@ -170,20 +232,16 @@ public class SpiderController : MonoBehaviour
     #region Auto-Target & Shooting (no coroutines)
     private void ScanForTarget()
     {
-        //// keep current target if still valid & in range
-        //if (currentTarget != null)
-        //{
-        //    if (Vector2.Distance(transform.position, currentTarget.position) <= scanRange)
-        //        return;
-        //    // drop target if out of range
-        //    currentTarget = null;
-        //    isShooting = false;
-        //}
-
         // find nearest enemy collider inside scanRange
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, scanRange, enemyLayer);
-        Transform nearest = null;
-        float bestSqr = float.MaxValue;
+
+        // track two nearest
+        Transform best1 = null;
+        Transform best2 = null;
+        float best1Sqr = float.MaxValue;
+        float best2Sqr = float.MaxValue;
+
+        Vector2 me = transform.position;
 
         foreach (var c in hits)
         {
@@ -191,39 +249,40 @@ public class SpiderController : MonoBehaviour
             var enemyComp = c.GetComponent<EnemyBase>();
             if (enemyComp == null) continue;
 
-            float sqr = ((Vector2)c.transform.position - (Vector2)transform.position).sqrMagnitude;
-            if (sqr < bestSqr)
+            float sqr = ((Vector2)c.transform.position - me).sqrMagnitude;
+
+            if (sqr < best1Sqr)
             {
-                bestSqr = sqr;
-                nearest = c.transform;
+                // shift best1 -> best2, set new best1
+                best2Sqr = best1Sqr;
+                best2 = best1;
+
+                best1Sqr = sqr;
+                best1 = c.transform;
+            }
+            else if (sqr < best2Sqr)
+            {
+                // this is the new second best
+                best2Sqr = sqr;
+                best2 = c.transform;
             }
         }
 
-        if (nearest != null)
+        // assign targets (may be null if fewer than required enemies)
+        currentTarget = best1;
+        secondTarget = best2;
+
+        if (currentTarget != null)
         {
-            currentTarget = nearest;
-            if (twoTargets)
-            {
-                foreach (var c in hits)
-                {
-                    if (c == null || c == currentTarget) continue;
-                    var enemyComp = c.GetComponent<EnemyBase>();
-                    if (enemyComp == null) continue;
-
-                    float sqr = ((Vector2)c.transform.position - (Vector2)transform.position).sqrMagnitude;
-                    if (sqr < bestSqr)
-                    {
-                        bestSqr = sqr;
-                        nearest = c.transform;
-                        secondTarget = nearest;
-                    }
-                }
-            }
             isShooting = true;
-            // ensure shot timer allows immediate shot if desired:
-            // lastShotTime = Time.time - fireCooldown; // uncomment to allow instant first shot
+            // optionally allow immediate shot:
+            // lastShotTime = Time.time - fireCooldown;
         }
-        
+        else
+        {
+            isShooting = false;
+        }
+
     }
 
     private void HandleShooting()
@@ -262,7 +321,7 @@ public class SpiderController : MonoBehaviour
             p.Init(projectileDamage + UpgradeManager.Instance.GetDamageBonus());
             p.MoveToTarget(transform.position, currentTarget.position);
 
-            if (secondTarget != null && twoTargets)
+            if (secondTarget != null && UpgradeManager.Instance.HasTwoTargets)
             {
                 p = GameManager.Instance.GetPlayerProjectile();
                 p.Init(projectileDamage + UpgradeManager.Instance.GetDamageBonus());

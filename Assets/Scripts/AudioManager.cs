@@ -27,9 +27,10 @@ public class AudioManager : MonoBehaviour
 
     public enum Sound
     {
-        ButtonClick,
         HitEnemy,
         ShieldActivate,
+        PickUp,
+        ButtonClick
     }
 
     #region soundAudioClipArray
@@ -57,13 +58,13 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (!musicSource.isPlaying)
-        {
-            PlayNextMusic();
-        }
-    }
+    //void Update()
+    //{
+    //    if (!musicSource.isPlaying)
+    //    {
+    //        PlayNextMusic();
+    //    }
+    //}
 
     private void PlayCurrentMusic(float volume)
     {

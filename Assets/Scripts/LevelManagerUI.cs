@@ -13,6 +13,8 @@ public class LevelManagerUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI waveTextP;
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI timerTextP;
+    [SerializeField] private TextMeshProUGUI stacksText;
+    [SerializeField] private TextMeshProUGUI uniqueText;
     [SerializeField] private Slider hpSlider;
     [SerializeField] private TextMeshProUGUI hpText;
 
@@ -77,6 +79,7 @@ public class LevelManagerUI : MonoBehaviour
         gameMenu.SetActive(false);
         upgradeMenu.enabled = false;
         pauseMenu.SetActive(true);
+        UpdateUpgrades();
 
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
@@ -108,6 +111,8 @@ public class LevelManagerUI : MonoBehaviour
 
     public void GoBackToMenu()
     {
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
+
         ManagerUI.Instance.TrySetNewTime(GameManager.Instance.timer);
 
         // ensure timeScale is restored when leaving scene
@@ -115,7 +120,13 @@ public class LevelManagerUI : MonoBehaviour
         SceneManager.LoadScene(0);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        AudioManager.Instance.ChangeMusic(0, 0.5f);
+        //AudioManager.Instance.ChangeMusic(0, 0.5f);
+    }
+
+    public void UpdateUpgrades()
+    {
+        stacksText.text = UpgradeManager.Instance.GetStackableUpgradesString();
+        uniqueText.text = UpgradeManager.Instance.GetUniqueUpgradesString();
     }
 
     public void UpdateBloodText()

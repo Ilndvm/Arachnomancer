@@ -35,6 +35,8 @@ public class Blood : MonoBehaviour
 
             GameManager.Instance.UIManager.UpdateBloodText();
 
+            AudioManager.Instance.PlaySound(AudioManager.Sound.PickUp);
+
             gameObject.SetActive(false);
             return;
         }

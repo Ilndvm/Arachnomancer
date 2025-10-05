@@ -36,30 +36,38 @@ public class ManagerUI : MonoBehaviour
     public void PlayGame()
     {
         AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
-        AudioManager.Instance.ChangeMusic(1, 0.5f);
+        //AudioManager.Instance.ChangeMusic(1, 0.5f);
         SceneManager.LoadScene(1);
     }
 
     public void OpenSettings()
     {
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
+
         mainUI.SetActive(false);
         settingsUI.SetActive(true);
     }
 
     public void OpenCredits()
     {
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
+
         mainUI.SetActive(false);
         creditsUI.SetActive(true);
     }
 
     public void CloseSettings()
     {
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
+
         settingsUI.SetActive(false);
         mainUI.SetActive(true);
     }
 
     public void CloseCredits()
     {
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
+
         creditsUI.SetActive(false);
         mainUI.SetActive(true);
     }

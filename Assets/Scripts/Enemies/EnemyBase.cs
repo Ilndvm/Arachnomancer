@@ -160,6 +160,8 @@ public class EnemyBase : MonoBehaviour
     {
         if (isInvulnerable) return;
 
+        AudioManager.Instance.PlaySound(AudioManager.Sound.HitEnemy);
+
         FloatingText t = GameManager.Instance.GetFloatingText();
         if (t != null) t.Init(transform.position, "-" + amount);
 

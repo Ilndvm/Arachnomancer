@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class WebDrawCoordinator : MonoBehaviour
 {
@@ -36,6 +37,8 @@ public class WebDrawCoordinator : MonoBehaviour
     }
 
     public TextMeshProUGUI bloodDropsAmountText;
+    public TextMeshProUGUI hintText;
+
 
     public Settings.Upgrade[] tutorialUpgrades;
     public bool tutorialComplete = false;
@@ -84,7 +87,8 @@ public class WebDrawCoordinator : MonoBehaviour
     private void Tutorial()
     {
         _mainEdges.Clear();
-        Debug.Log("Use blood to draw symbol on the web");
+        hintText.text = "Use blood to draw symbol on the web";
+
         GameManager.Instance.blood+=3;
 
         if (main) main.ResetGraph(false);
@@ -174,8 +178,8 @@ public class WebDrawCoordinator : MonoBehaviour
         }
         if (!tutorialComplete)
         {
-            
-            Debug.Log("you can reroll templates to find better upgrade\nbut each reroll cost 1 blood");
+            hintText.text = "You can reroll templates to find better upgrade\nbut each reroll cost 1 blood";
+
             return;
         }
         if (stringReuse)
@@ -228,19 +232,20 @@ public class WebDrawCoordinator : MonoBehaviour
 
     public void Submit()
     {
-        
         // compare main edges to each preset pattern
         if (Matches(_mainEdges, _patA) )
         {
             if (tutorialComplete) {
                 UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
-                Debug.Log($"you obtained upgade: {availableUpgrades[iA].upgradeType}");
+                hintText.text = $"You obtained upgade: {availableUpgrades[iA].upgradeType}";
+
                 if (availableUpgrades[iA].isUnique) availableUpgrades.RemoveAt(iA);
 
             }
             else
             {
-                Debug.Log($"you obtained upgade: {tutorialUpgrades[iA].description}");
+                hintText.text = $"You obtained upgade: {tutorialUpgrades[iA].description}";
+
                 tutorialComplete = true;
             }
             NewRound(false);
@@ -252,13 +257,16 @@ public class WebDrawCoordinator : MonoBehaviour
             if (tutorialComplete)
             {
                 UpgradeManager.Instance.TryUpgrade(availableUpgrades[iB].upgradeType);
-                Debug.Log($"you obtained upgade: {availableUpgrades[iB].upgradeType}");
+
+                hintText.text = $"You obtained upgade: {availableUpgrades[iB].upgradeType}";
+
                 if (availableUpgrades[iB].isUnique) availableUpgrades.RemoveAt(iB);
 
             }
             else
             {
-                Debug.Log($"you obtained upgade: {tutorialUpgrades[iB].description}");
+                hintText.text = $"You obtained upgade: {tutorialUpgrades[iB].description}";
+
                 tutorialComplete = true;
 
             }
@@ -269,13 +277,15 @@ public class WebDrawCoordinator : MonoBehaviour
             if (tutorialComplete)
             {
                 UpgradeManager.Instance.TryUpgrade(availableUpgrades[iC].upgradeType);
-                Debug.Log($"you obtained upgade: {availableUpgrades[iC].upgradeType}");
+                hintText.text = $"You obtained upgade: {availableUpgrades[iC].upgradeType}";
+
                 if (availableUpgrades[iC].isUnique) availableUpgrades.RemoveAt(iC);
 
             }
             else
             {
-                Debug.Log($"you obtained upgade: {tutorialUpgrades[iC].description}");
+                hintText.text = $"You obtained upgade: {tutorialUpgrades[iC].description}";
+
                 tutorialComplete = true;
 
             }
@@ -283,7 +293,7 @@ public class WebDrawCoordinator : MonoBehaviour
         }
         else
         {
-            Debug.Log("incorect drawing\ntry again");
+            hintText.text = "Incorect drawing\nTry again";
         }
     }
 
@@ -295,7 +305,7 @@ public class WebDrawCoordinator : MonoBehaviour
         _mainEdges.Add(k);
         if (!tutorialComplete)
         {
-            Debug.Log("if line is correct you will see green line\nelse you can start from beginning by pressing button");
+            hintText.text = "If line is correct you will see green line\nelse you can start from beginning by pressing button";
         }
         // visual feedback on presets (green if present, else fade/red)
         CheckPresetVisual(presetA, _cgA, a, b);

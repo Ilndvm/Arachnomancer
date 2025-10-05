@@ -30,11 +30,11 @@ public class Settings : ScriptableObject
 
     public enum UpgradeType
     {
-        BonusHP,
-        BonusSpeed,
-        BonusFireRate,
-        BonusDamage,
-        BonusLuck,
+        HP,
+        Speed,
+        FireRate,
+        Damage,
+        Luck,
         Regeneration,
         LifeSteal,
         Slowness,

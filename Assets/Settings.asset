@@ -314,7 +314,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 13
     isUnique: 1
-    description: Fireballs will randomly spawn on the map, damaging enemies
+    description: Shoots two projectiles
     pattern:
       edges:
       - a: 24
