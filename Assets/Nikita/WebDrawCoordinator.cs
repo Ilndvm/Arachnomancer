@@ -37,6 +37,8 @@ public class WebDrawCoordinator : MonoBehaviour
 
     public TextMeshProUGUI bloodDropsAmountText;
 
+    public Settings.Upgrade[] tutorialUpgrades;
+    public bool tutorialComplete = false;
     /*[Header("Pattern library (fill here or let script auto-fill a default set)")]
     public Pattern[] patterns;*/
 
@@ -73,11 +75,45 @@ public class WebDrawCoordinator : MonoBehaviour
         presetC.Init();
         availableUpgrades = new List<Settings.Upgrade>(settings.UpgradeArray); // shallow copy
         bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
-        GameManager.Instance.blood++;
-        NewRound();
-
+        /*GameManager.Instance.blood++;
+        NewRound();*/
+        Tutorial();
         
     }
+
+    private void Tutorial()
+    {
+        _mainEdges.Clear();
+        Debug.Log("Use blood to draw symbol on the web");
+        GameManager.Instance.blood+=3;
+
+        if (main) main.ResetGraph(false);
+        if (presetA) presetA.ResetGraph();
+        if (presetB) presetB.ResetGraph();
+        if (presetC) presetC.ResetGraph();
+
+        ResetPresetVisuals(presetA, _cgA);
+        ResetPresetVisuals(presetB, _cgB);
+        ResetPresetVisuals(presetC, _cgC);
+
+        // pick patterns
+        /*if (patterns == null || patterns.Length == 0) return;*/
+
+        
+
+        iA = 0;
+        iB = 1;
+        iC = 2;
+
+        // apply patterns
+        _patA = ApplyPatternToPreset(presetA, tutorialUpgrades[iA].pattern);
+        presetAText.text = tutorialUpgrades[iA].description;
+        _patB = ApplyPatternToPreset(presetB, tutorialUpgrades[iB].pattern);
+        presetBText.text = tutorialUpgrades[iB].description;
+        _patC = ApplyPatternToPreset(presetC, tutorialUpgrades[iC].pattern);
+        presetCText.text = tutorialUpgrades[iC].description;
+    }
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -136,11 +172,17 @@ public class WebDrawCoordinator : MonoBehaviour
         {
             return;
         }
-
+        if (!tutorialComplete)
+        {
+            
+            Debug.Log("you can reroll templates to find better upgrade\nbut each reroll cost 1 blood");
+            return;
+        }
         if (stringReuse)
         {
             GameManager.Instance.blood--;
         }
+
 
         GameManager.Instance.UIManager.UpdateBloodText();
         bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
@@ -190,25 +232,58 @@ public class WebDrawCoordinator : MonoBehaviour
         // compare main edges to each preset pattern
         if (Matches(_mainEdges, _patA) )
         {
-            UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
-            if(availableUpgrades[iA].isUnique) availableUpgrades.RemoveAt(iA);
+            if (tutorialComplete) {
+                UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
+                Debug.Log($"you obtained upgade: {availableUpgrades[iA].upgradeType}");
+                if (availableUpgrades[iA].isUnique) availableUpgrades.RemoveAt(iA);
+
+            }
+            else
+            {
+                Debug.Log($"you obtained upgade: {tutorialUpgrades[iA].description}");
+                tutorialComplete = true;
+            }
             NewRound(false);
+
+            
         }
         else if(Matches(_mainEdges, _patB))
         {
-            UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
-            if (availableUpgrades[iB].isUnique) availableUpgrades.RemoveAt(iB);
+            if (tutorialComplete)
+            {
+                UpgradeManager.Instance.TryUpgrade(availableUpgrades[iB].upgradeType);
+                Debug.Log($"you obtained upgade: {availableUpgrades[iB].upgradeType}");
+                if (availableUpgrades[iB].isUnique) availableUpgrades.RemoveAt(iB);
+
+            }
+            else
+            {
+                Debug.Log($"you obtained upgade: {tutorialUpgrades[iB].description}");
+                tutorialComplete = true;
+
+            }
             NewRound(false);
         }
         else if(Matches(_mainEdges, _patC))
         {
-            UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
-            if (availableUpgrades[iC].isUnique) availableUpgrades.RemoveAt(iC);
+            if (tutorialComplete)
+            {
+                UpgradeManager.Instance.TryUpgrade(availableUpgrades[iC].upgradeType);
+                Debug.Log($"you obtained upgade: {availableUpgrades[iC].upgradeType}");
+                if (availableUpgrades[iC].isUnique) availableUpgrades.RemoveAt(iC);
+
+            }
+            else
+            {
+                Debug.Log($"you obtained upgade: {tutorialUpgrades[iC].description}");
+                tutorialComplete = true;
+
+            }
             NewRound(false);
         }
         else
         {
-            Debug.Log("bad");
+            Debug.Log("incorect drawing\ntry again");
         }
     }
 
@@ -218,7 +293,10 @@ public class WebDrawCoordinator : MonoBehaviour
     {
         var k = new EdgeKey(a, b);
         _mainEdges.Add(k);
-
+        if (!tutorialComplete)
+        {
+            Debug.Log("if line is correct you will see green line\nelse you can start from beginning by pressing button");
+        }
         // visual feedback on presets (green if present, else fade/red)
         CheckPresetVisual(presetA, _cgA, a, b);
         CheckPresetVisual(presetB, _cgB, a, b);
