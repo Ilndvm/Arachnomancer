@@ -16,7 +16,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 0
     isUnique: 0
-    description: Increase Max Hp
+    description: Increase Max HP by 10
     pattern:
       edges:
       - a: 24
@@ -34,7 +34,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 1
     isUnique: 0
-    description: Increase Max speed
+    description: Increase Max speed by 5%
     pattern:
       edges:
       - a: 24
@@ -52,7 +52,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 2
     isUnique: 0
-    description: Increase Fire Rate
+    description: Increase Fire Rate by 10%
     pattern:
       edges:
       - a: 24
@@ -72,7 +72,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 3
     isUnique: 0
-    description: Increase BaseDamage
+    description: Increase BaseDamage by 1
     pattern:
       edges:
       - a: 24
@@ -92,7 +92,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 4
     isUnique: 0
-    description: Increase Luck
+    description: Increase Blood Drop Chance by 1%
     pattern:
       edges:
       - a: 24
@@ -109,8 +109,8 @@ MonoBehaviour:
         b: 24
   - isChosen: 0
     upgradeType: 5
-    isUnique: 0
-    description: Increase Regeneration
+    isUnique: 1
+    description: Grants regeneration
     pattern:
       edges:
       - a: 24
@@ -127,7 +127,7 @@ MonoBehaviour:
         b: 11
   - isChosen: 0
     upgradeType: 6
-    isUnique: 0
+    isUnique: 1
     description: Increase Life Steal
     pattern:
       edges:
@@ -204,7 +204,7 @@ MonoBehaviour:
   - isChosen: 0
     upgradeType: 9
     isUnique: 1
-    description: Receive a shield that will save you from 1 hit (cooldown 10 sec)
+    description: Grants a shield that will save you from 1 hit (cooldown 10 sec)
     pattern:
       edges:
       - a: 24

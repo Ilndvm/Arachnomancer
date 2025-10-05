@@ -198,13 +198,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ccf48882f4488649933d1a4b2f508e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 20
-  contactDamage: 1
-  damage: 0
+  maxHealth: 8
+  contactDamage: 2
+  damage: 5
   moveSpeed: 3
   attackRange: 0
   attackCooldown: 2
-  dropChance: 1
+  dropChance: 40
   invulnAfterHitSeconds: 0.2
   lastAttackTime: 0
   mine: {fileID: 4699920586988376372, guid: 10e9745331e57e94885f358d5b7ccb5b, type: 3}

@@ -7,7 +7,7 @@ public class LevelManagerUI : MonoBehaviour
 {
     [SerializeField] private GameObject gameMenu;
     [SerializeField] private GameObject pauseMenu;
-    [SerializeField] private GameObject upgradeMenu;
+    [SerializeField] private Canvas upgradeMenu;
     [SerializeField] private TextMeshProUGUI bloodText;
     [SerializeField] private TextMeshProUGUI waveText;
     [SerializeField] private TextMeshProUGUI waveTextP;
@@ -16,13 +16,12 @@ public class LevelManagerUI : MonoBehaviour
     [SerializeField] private Slider hpSlider;
     [SerializeField] private TextMeshProUGUI hpText;
 
-
     private void Awake()
     {
         // defensive
         gameMenu.SetActive(true);
         pauseMenu.SetActive(false);
-        upgradeMenu.SetActive(false);
+        upgradeMenu.enabled = false;
 
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
@@ -33,7 +32,7 @@ public class LevelManagerUI : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (upgradeMenu.activeSelf)
+            if (upgradeMenu.enabled)
             {
                 CloseUpgradeMenu();
             }
@@ -49,7 +48,7 @@ public class LevelManagerUI : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (upgradeMenu.activeSelf)
+            if (upgradeMenu.enabled)
             {
                 CloseUpgradeMenu();
             }
@@ -64,7 +63,9 @@ public class LevelManagerUI : MonoBehaviour
     {
         gameMenu.SetActive(false);
         pauseMenu.SetActive(false);
-        upgradeMenu.SetActive(true);
+        upgradeMenu.enabled = true;
+        WebDrawCoordinator.Instance.bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
+
 
         Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
@@ -74,7 +75,7 @@ public class LevelManagerUI : MonoBehaviour
     public void OpenPauseMenu()
     {
         gameMenu.SetActive(false);
-        upgradeMenu.SetActive(false);
+        upgradeMenu.enabled = false;
         pauseMenu.SetActive(true);
 
         Time.timeScale = 0f;
@@ -85,7 +86,7 @@ public class LevelManagerUI : MonoBehaviour
     public void ClosePauseMenu()
     {
         pauseMenu.SetActive(false);
-        upgradeMenu.SetActive(false);
+        upgradeMenu.enabled = false;
         gameMenu.SetActive(true);
 
         Time.timeScale = 1f;
@@ -96,7 +97,7 @@ public class LevelManagerUI : MonoBehaviour
     // new close for upgrade menu (mirrors ClosePauseMenu behavior)
     public void CloseUpgradeMenu()
     {
-        upgradeMenu.SetActive(false);
+        upgradeMenu.enabled = false;
         pauseMenu.SetActive(false);
         gameMenu.SetActive(true);
 
@@ -107,6 +108,8 @@ public class LevelManagerUI : MonoBehaviour
 
     public void GoBackToMenu()
     {
+        ManagerUI.Instance.TrySetNewTime(GameManager.Instance.timer);
+
         // ensure timeScale is restored when leaving scene
         Time.timeScale = 1f;
         SceneManager.LoadScene(0);
@@ -152,6 +155,6 @@ public class LevelManagerUI : MonoBehaviour
         // Clamp current and set value
         float clamped = Mathf.Clamp(GameManager.Instance.player.currentHP, 0f, GameManager.Instance.player.maxHP);
         hpSlider.value = clamped;
-        hpText.text = GameManager.Instance.player.currentHP + ":" + GameManager.Instance.player.maxHP;
+        hpText.text = (int)GameManager.Instance.player.currentHP + "/" + GameManager.Instance.player.maxHP;
     }
 }

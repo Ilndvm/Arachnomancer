@@ -164,7 +164,6 @@ public class EnemyBase : MonoBehaviour
         if (t != null) t.Init(transform.position, "-" + amount);
 
         currentHealth -= amount;
-        StartCoroutine(TemporaryInvuln(invulnAfterHitSeconds));
 
         if (currentHealth <= 0)
         {

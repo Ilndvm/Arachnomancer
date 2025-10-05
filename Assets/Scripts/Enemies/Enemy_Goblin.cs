@@ -28,6 +28,7 @@ public class Enemy_Goblin : EnemyBase
         if (Time.time - lastAttackTime < attackCooldown) return;
         lastAttackTime = Time.time;
         // spawn mine
-        Instantiate(mine, transform.position, Quaternion.identity);
+        var p = GameManager.Instance.GetProjectile(0);
+        p.Init(damage);
     }
 }

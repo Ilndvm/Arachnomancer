@@ -15,6 +15,7 @@ public class Enemy_Skeleton : EnemyBase
         // spawn projectile
         var p = GameManager.Instance.GetProjectile(1);
         p.MoveToPlayer(transform.position);
+        p.Init(damage);
         animator.SetTrigger("Attack");
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,9 +11,9 @@ public class WebDrawCoordinator : MonoBehaviour
     public WebDrawLogic presetA;  // presets (drawable = false)
     public WebDrawLogic presetB;
     public WebDrawLogic presetC;
-    public Text presetAText;  // presets (drawable = false)
-    public Text presetBText;
-    public Text presetCText;
+    public TextMeshProUGUI presetAText;  // presets (drawable = false)
+    public TextMeshProUGUI presetBText;
+    public TextMeshProUGUI presetCText;
     [Header("Preset visuals")]
     public Color32 goodColor = new Color32(0, 255, 0, 255);   // when a line matches main
     public Color32 badColor = new Color32(255, 0, 0, 255);   // default color on presets
@@ -34,7 +35,7 @@ public class WebDrawCoordinator : MonoBehaviour
         public Pair[] edges;
     }
 
-    public Text bloodDropsAmountText;
+    public TextMeshProUGUI bloodDropsAmountText;
 
     /*[Header("Pattern library (fill here or let script auto-fill a default set)")]
     public Pattern[] patterns;*/
@@ -101,6 +102,8 @@ public class WebDrawCoordinator : MonoBehaviour
             main.OnEdgeCreated += HandleMainEdgeCreated;
             main.OnResetEvent += HandleMainReset;
         }
+        bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
+
     }
 
     void OnDisable()
@@ -129,7 +132,7 @@ public class WebDrawCoordinator : MonoBehaviour
     int iC;
     public void NewRound(bool stringReuse = true)
     {
-        if (GameManager.Instance.blood<=0)
+        if (GameManager.Instance.blood <= 0 && stringReuse)
         {
             return;
         }
@@ -138,6 +141,9 @@ public class WebDrawCoordinator : MonoBehaviour
         {
             GameManager.Instance.blood--;
         }
+
+        GameManager.Instance.UIManager.UpdateBloodText();
+        bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
 
         // reset all boards
         if (main) main.ResetGraph(stringReuse);
@@ -180,6 +186,7 @@ public class WebDrawCoordinator : MonoBehaviour
 
     public void Submit()
     {
+        
         // compare main edges to each preset pattern
         if (Matches(_mainEdges, _patA) )
         {

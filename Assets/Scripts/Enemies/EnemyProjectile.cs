@@ -16,7 +16,10 @@ public class EnemyProjectile : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
     }
-
+    public void Init(int damage)
+    {
+        this.damage = damage;
+    }
     private void OnEnable()
     {
         // Start self-destruct timer

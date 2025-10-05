@@ -14,6 +14,7 @@ public class Enemy_FlyingSkull : EnemyBase
         lastAttackTime = Time.time;
         // spawn projectile
         var p = GameManager.Instance.GetProjectile(2);
+        p.Init(damage);
         p.FollowPlayer(transform.position);
     }
 }
