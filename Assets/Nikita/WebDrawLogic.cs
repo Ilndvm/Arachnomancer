@@ -196,6 +196,7 @@ public class WebDrawLogic : MonoBehaviour
         var from = _previousPoint;
         var to = buttons[index].transform as RectTransform;
         GameManager.Instance.blood--;
+        GameManager.Instance.UIManager.UpdateBloodText();
         var line = DrawLineBetween(from, to);
         if (line == null) return;
 
