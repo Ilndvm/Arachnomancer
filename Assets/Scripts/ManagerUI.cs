@@ -35,6 +35,8 @@ public class ManagerUI : MonoBehaviour
 
     public void PlayGame()
     {
+        AudioManager.Instance.PlaySound(AudioManager.Sound.ButtonClick);
+        AudioManager.Instance.ChangeMusic(1, 0.5f);
         SceneManager.LoadScene(1);
     }
 

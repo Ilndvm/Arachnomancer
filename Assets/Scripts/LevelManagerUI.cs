@@ -115,6 +115,7 @@ public class LevelManagerUI : MonoBehaviour
         SceneManager.LoadScene(0);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        AudioManager.Instance.ChangeMusic(0, 0.5f);
     }
 
     public void UpdateBloodText()
