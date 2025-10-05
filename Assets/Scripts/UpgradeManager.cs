@@ -18,16 +18,18 @@ public class UpgradeManager : MonoBehaviour
     [SerializeField] private float fireRateMultiplierPerStack = 0.10f; // additive fraction to multiply fireRate by (1 + n * val)
     [SerializeField] private int damagePerStack = 1;
     [SerializeField] private int luckPerStack = 1;
-    [SerializeField] private float magnetRadiusPerStack = 0.5f;
+    [SerializeField] private float magnetRadiusPerStack = 1.5f;
 
     [Header("Unique effects")]
-    [SerializeField] private float lifeStealPercent = 0.15f; // 15% life steal when LifeSteal applied
-    [SerializeField] private float slowness = 0.15f; // 15% life steal when LifeSteal applied
-    [SerializeField] private float ricochetCount = 2; // number of ricochets for Ricochet upgrade (you can treat as int)
+    [SerializeField] public float lifeStealPercent = 0.15f; // 15% life steal when LifeSteal applied
+    [SerializeField] public float slowness = 0.5f; // 0.5 half speed for enemy
+    [SerializeField] public float slownessTime = 5f;
+    [SerializeField] public int poison = 1; // poison damage every sec
+    [SerializeField] public float poisonTime = 5f;
+    [SerializeField] public float explosionRadius = 1.5f; // used by Explosion unique (gameplay must use this)
+
     [SerializeField] private float shield = 25f;
-    [SerializeField] private float explosionRadius = 1.2f; // used by Explosion unique (gameplay must use this)
     [SerializeField] private float fireball = 1.2f; // used by Explosion unique (gameplay must use this)
-    [SerializeField] private float poison = 1.2f; // used by Explosion unique (gameplay must use this)
 
     // Event so UI / other systems can react
     public event Action OnUpgradesChanged;
@@ -107,8 +109,8 @@ public class UpgradeManager : MonoBehaviour
     }
     public float GetMagnetBonus()
     {
-        int stacksCount = GetStackCount(Settings.UpgradeType.Magnet);
-        return 1f + stacksCount * magnetRadiusPerStack;
+        return GetStackCount(Settings.UpgradeType.Magnet) * magnetRadiusPerStack;
+
     }
 
     public bool HasUnique(Settings.UpgradeType t) => appliedUnique.Contains(t);
@@ -116,7 +118,8 @@ public class UpgradeManager : MonoBehaviour
 
     // convenience boolean flags
     public bool HasRegeneration => HasUnique(Settings.UpgradeType.Regeneration);
-    public bool HasLifwSteal => HasUnique(Settings.UpgradeType.LifeSteal);
+    public bool HasLifeSteal => HasUnique(Settings.UpgradeType.LifeSteal);
+    public bool HasSlowness => HasUnique(Settings.UpgradeType.Slowness);
     public bool HasRicochet => HasUnique(Settings.UpgradeType.Ricochet);
     public bool HasShield => HasUnique(Settings.UpgradeType.Shield);
     public bool HasExplosion => HasUnique(Settings.UpgradeType.Explosion);
@@ -125,33 +128,33 @@ public class UpgradeManager : MonoBehaviour
 
     private void ApplyUniqueEffect(Settings.UpgradeType t)
     {
-        switch (t)
-        {
-            case Settings.UpgradeType.Shield:
-                // Provide shield HP to the player. Game systems should call GetShieldHP() to read how much.
-                // Optionally: give the player an initial shield fill (TODO: call player's method to grant shield).
-                // e.g. PlayerShieldComponent.ApplyShield(GetShieldHP());
-                Debug.Log("[UpgradeManager] Shield acquired.");
-                break;
+        //switch (t)
+        //{
+        //    case Settings.UpgradeType.Shield:
+        //        // Provide shield HP to the player. Game systems should call GetShieldHP() to read how much.
+        //        // Optionally: give the player an initial shield fill (TODO: call player's method to grant shield).
+        //        // e.g. PlayerShieldComponent.ApplyShield(GetShieldHP());
+        //        Debug.Log("[UpgradeManager] Shield acquired.");
+        //        break;
 
-            case Settings.UpgradeType.LifeSteal:
-                // enables life steal behavior; projectiles or damage system should query GetLifeStealPercent().
-                Debug.Log("[UpgradeManager] LifeSteal acquired.");
-                break;
+        //    case Settings.UpgradeType.LifeSteal:
+        //        // enables life steal behavior; projectiles or damage system should query GetLifeStealPercent().
+        //        Debug.Log("[UpgradeManager] LifeSteal acquired.");
+        //        break;
 
-            case Settings.UpgradeType.Ricochet:
-                Debug.Log("[UpgradeManager] Ricochet acquired.");
-                break;
+        //    case Settings.UpgradeType.Ricochet:
+        //        Debug.Log("[UpgradeManager] Ricochet acquired.");
+        //        break;
 
-            case Settings.UpgradeType.Fireball:
-                Debug.Log("[UpgradeManager] Fireball acquired.");
-                break;
+        //    case Settings.UpgradeType.Fireball:
+        //        Debug.Log("[UpgradeManager] Fireball acquired.");
+        //        break;
 
-            default:
-                // Many unique upgrades just set the flag; game code should query them.
-                Debug.Log($"[UpgradeManager] Applied unique upgrade: {t}");
-                break;
-        }
+        //    default:
+        //        // Many unique upgrades just set the flag; game code should query them.
+        //        Debug.Log($"[UpgradeManager] Applied unique upgrade: {t}");
+        //        break;
+        //}
     }
 
     private void ApplyStackEffect(Settings.UpgradeType t)
@@ -162,11 +165,9 @@ public class UpgradeManager : MonoBehaviour
             case Settings.UpgradeType.BonusHP:
                 player.UpdateMaxHP();
                 break;
-            case Settings.UpgradeType.Regeneration:
-                // consumer reads GetRegenBonus()
-                break;
+            
             case Settings.UpgradeType.Magnet:
-                // stacking magnet increases its radius — consumers should read GetStackCount(Magnet) and compute radius.
+                player.UpdateMagnet();
                 break;
             default:
                 break;

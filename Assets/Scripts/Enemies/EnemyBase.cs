@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D), typeof(SpriteRenderer))]
 public class EnemyBase : MonoBehaviour
@@ -12,9 +11,8 @@ public class EnemyBase : MonoBehaviour
     [SerializeField] protected float moveSpeed = 2f;
     [SerializeField] protected float attackRange = 1f; // stop moving when inside this range
     [SerializeField] protected float attackCooldown = 1.0f;
-    [Range(0f,100f)]
+    [Range(0f, 100f)]
     [SerializeField] protected float dropChance = 50.0f;
-
 
     [SerializeField] protected float invulnAfterHitSeconds = 0.2f;
 
@@ -29,26 +27,55 @@ public class EnemyBase : MonoBehaviour
     [HideInInspector] public float lastAttackTime = 0f;
     bool isInvulnerable = false;
 
+    protected float baseMoveSpeed;
+    Coroutine slowCoroutine = null;
+    Coroutine poisonCoroutine = null;
+
     protected virtual void Awake()
     {
         currentHealth = maxHealth;
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+
+        // store the unmodified speed so we can restore after slows
+        baseMoveSpeed = moveSpeed;
     }
+
     protected virtual void Start()
     {
-        player = FindFirstObjectByType<SpiderController>();
+        player = GameManager.Instance.player;
     }
 
     protected virtual void Init()
     {
         currentHealth = maxHealth;
+        moveSpeed = baseMoveSpeed;
+
+        // ensure runtime effect state is clean if Init is called directly
+        ResetStatusEffects();
     }
 
     protected virtual void OnEnable()
     {
         Init();
+    }
+
+    protected void ResetStatusEffects()
+    {
+        // stop slow
+        if (slowCoroutine != null)
+        {
+            StopCoroutine(slowCoroutine);
+            slowCoroutine = null;
+        }
+
+        // stop poison
+        if (poisonCoroutine != null)
+        {
+            StopCoroutine(poisonCoroutine);
+            poisonCoroutine = null;
+        }
     }
 
     protected virtual void FixedUpdate()
@@ -57,6 +84,7 @@ public class EnemyBase : MonoBehaviour
 
         MoveToPlayer();
     }
+
     protected virtual void MoveToRange()
     {
         Vector2 currentPos = rb.position;
@@ -106,6 +134,7 @@ public class EnemyBase : MonoBehaviour
             SetFlip(dir.x < 0);
         }
     }
+
     public virtual void SetPosition(Vector2 pos)
     {
         transform.position = pos;
@@ -132,7 +161,7 @@ public class EnemyBase : MonoBehaviour
         if (isInvulnerable) return;
 
         FloatingText t = GameManager.Instance.GetFloatingText();
-        t.Init(transform.position, "-" + amount);
+        if (t != null) t.Init(transform.position, "-" + amount);
 
         currentHealth -= amount;
         StartCoroutine(TemporaryInvuln(invulnAfterHitSeconds));
@@ -150,12 +179,93 @@ public class EnemyBase : MonoBehaviour
         isInvulnerable = false;
     }
 
+    public void ApplySlowness(float factor, float duration)
+    {
+        factor = Mathf.Clamp(factor, 0.01f, 1f);
+
+        // cancel existing slow if running
+        if (slowCoroutine != null)
+        {
+            StopCoroutine(slowCoroutine);
+            slowCoroutine = null;
+        }
+
+        slowCoroutine = StartCoroutine(SlowRoutine(factor, duration));
+    }
+
+    private IEnumerator SlowRoutine(float factor, float duration)
+    {
+        // set slowed speed based on baseMoveSpeed so stacking/overrides don't compound
+        moveSpeed = baseMoveSpeed * factor;
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // restore base speed
+        moveSpeed = baseMoveSpeed;
+        slowCoroutine = null;
+    }
+
+    public void ApplyPoison(int damagePerSecond, float duration)
+    {
+        // cancel existing poison if running
+        if (poisonCoroutine != null)
+        {
+            StopCoroutine(poisonCoroutine);
+            poisonCoroutine = null;
+        }
+
+        poisonCoroutine = StartCoroutine(PoisonRoutine(damagePerSecond, duration));
+    }
+
+    private IEnumerator PoisonRoutine(int damagePerSecond, float duration)
+    {
+        float elapsed = 0f;
+
+        // immediate tick every 1s (not fractional). If duration < 1s there will be at most one tick if duration >=1.
+        while (elapsed < duration)
+        {
+            // wait one second (or remaining time if less than 1s)
+            float wait = Mathf.Min(1f, duration - elapsed);
+            yield return new WaitForSeconds(wait);
+
+            // apply damage (ignore invulnerability)
+            ApplyDamageDirect(damagePerSecond);
+
+            elapsed += wait;
+
+            // if died, break
+            if (currentHealth <= 0) break;
+        }
+
+        poisonCoroutine = null;
+    }
+
+    // Applies damage bypassing temporary invulnerability and still shows floating text.
+    protected void ApplyDamageDirect(int amount)
+    {
+        if (amount <= 0) return;
+
+        FloatingText t = GameManager.Instance.GetFloatingText();
+        if (t != null) t.Init(transform.position, "-" + amount);
+
+        currentHealth -= amount;
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
     protected virtual void Die()
     {
         gameObject.SetActive(false);
 
         float random = Random.Range(1f, 100f);
-        if (random <= dropChance) 
+        if (random <= dropChance + UpgradeManager.Instance.GetLuckBonus())
         {
             var s = GameManager.Instance.GetString();
             s.transform.position = transform.position;

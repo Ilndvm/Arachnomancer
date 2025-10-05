@@ -26,26 +26,19 @@ public class EnemySpawnerManager : MonoBehaviour
     [Header("Wave")]
     [SerializeField] private float countdownTime = 120;
     [SerializeField] private float currentTime;
-    [SerializeField] private float currentWave = 1; // optinal for now
+    [SerializeField] public int currentWave = 1; // optinal for now
     [SerializeField] private int activeAmountOfPrefabs = 2;
 
-    public static EnemySpawnerManager Instance { get; private set; }
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-
         wait = new WaitForSeconds(spawnInterval);
     }
 
     private void Start()
     {
+        GameManager.Instance.UIManager.UpdateWaveText(currentWave);
+
         StartCoroutine(SpawnLoop());
         currentTime = countdownTime;
     }
@@ -67,6 +60,7 @@ public class EnemySpawnerManager : MonoBehaviour
                 activeAmountOfPrefabs++;
             }
             currentWave++;
+            GameManager.Instance.UIManager.UpdateWaveText(currentWave);
             currentTime = countdownTime;
         }
     }
@@ -111,7 +105,7 @@ public class EnemySpawnerManager : MonoBehaviour
 
             if (random <= cumulative)
             {
-                Debug.Log($"SUM: {sum}; COEFF: {coeff}; PROBABILITY: {(int)arrayProbabilities[j] * coeff}; RANDOM: {random}; CUMULATIVE: {cumulative}; INDEX: {j + 1};");
+                //Debug.Log($"SUM: {sum}; COEFF: {coeff}; PROBABILITY: {(int)arrayProbabilities[j] * coeff}; RANDOM: {random}; CUMULATIVE: {cumulative}; INDEX: {j + 1};");
 
                 EnemyBase enemy = GameManager.Instance.GetEnemy(j);
                 enemy.SetPosition(pos);

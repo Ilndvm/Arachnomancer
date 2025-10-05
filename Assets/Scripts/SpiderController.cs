@@ -10,10 +10,10 @@ public class SpiderController : MonoBehaviour
     private Animator animator;
 
     [Header("Health")]
-    [SerializeField] private float maxHP = 100f;
+    [SerializeField] public float maxHP = 100f;
     [SerializeField] private float regenRate = 1f;      // HP per second while regenerating
     [SerializeField] private float regenDelay = 5f;     // seconds after last damage before regen starts
-    private float currentHP;
+    public float currentHP;
     private float lastDamageTime = -999f;
 
     [Header("Auto-shoot")]
@@ -21,8 +21,10 @@ public class SpiderController : MonoBehaviour
     [SerializeField] private float scanRange = 3f;      // how far we can detect enemies
     [SerializeField] private float fireRate = 1f;       // shots per second
     [SerializeField] private float scanInterval = 0.15f;
-    [SerializeField] private LayerMask enemyLayer = ~0; // which layers to consider when scanning (default = everything)
+    [SerializeField] public LayerMask enemyLayer = ~0; // which layers to consider when scanning (default = everything)
 
+    [SerializeField] private CircleCollider2D magnet;
+    private float initialMagnetRadius;
     // runtime
     private Transform currentTarget;
     private bool isShooting = false;
@@ -30,13 +32,15 @@ public class SpiderController : MonoBehaviour
     // timers
     private float scanTimer = 0f;
     private float lastShotTime = -999f;
-    private float fireCooldown => 1f / Mathf.Max(0.0001f, fireRate);
+    private float fireCooldown => 1f / Mathf.Max(0.0001f, fireRate * UpgradeManager.Instance.GetFireRateMultiplier());
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         currentHP = maxHP;
+        GameManager.Instance.UIManager.UpdateHPSlider();
+        initialMagnetRadius = magnet.radius;
     }
 
     void OnEnable()
@@ -106,6 +110,7 @@ public class SpiderController : MonoBehaviour
 
         currentHP -= damage;
         lastDamageTime = Time.time;
+        GameManager.Instance.UIManager.UpdateHPSlider();
 
         // TODO: play hurt VFX/SFX/animation
         // animator.SetTrigger("Hurt");
@@ -118,6 +123,8 @@ public class SpiderController : MonoBehaviour
 
     private void HandleRegen()
     {
+        if (!UpgradeManager.Instance.HasRegeneration) return;
+
         if (currentHP >= maxHP) return;
 
         if (Time.time - lastDamageTime >= regenDelay)
@@ -125,14 +132,27 @@ public class SpiderController : MonoBehaviour
             // regenerate
             currentHP += regenRate * Time.deltaTime;
             if (currentHP > maxHP) currentHP = maxHP;
+
+            GameManager.Instance.UIManager.UpdateHPSlider();
         }
+    }
+    public void Heal(float amount)
+    {
+        currentHP += amount;
+        if (currentHP > maxHP) currentHP = maxHP;
+
+        GameManager.Instance.UIManager.UpdateHPSlider();
     }
 
     public void UpdateMaxHP()
     {
         maxHP = maxHP + UpgradeManager.Instance.GetBonusHP();
+        GameManager.Instance.UIManager.UpdateHPSlider();
     }
-
+    public void UpdateMagnet()
+    {
+        magnet.radius = initialMagnetRadius + UpgradeManager.Instance.GetMagnetBonus();
+    }
     private void Die()
     {
         // TODO: play death animation / drop loot / notify manager
@@ -217,7 +237,7 @@ public class SpiderController : MonoBehaviour
             // animator.SetTrigger("Shoot");
 
             var p = GameManager.Instance.GetPlayerProjectile();
-            p.Init(projectileDamage);
+            p.Init(projectileDamage + UpgradeManager.Instance.GetDamageBonus());
             p.MoveToTarget(transform.position, currentTarget.position);
 
         }

@@ -341,5 +341,5 @@ MonoBehaviour:
         b: 23
       - a: 23
         b: 12
-      - a: 23
-        b: 12
+      - a: 12
+        b: 24

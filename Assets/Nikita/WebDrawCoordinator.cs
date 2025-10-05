@@ -35,15 +35,6 @@ public class WebDrawCoordinator : MonoBehaviour
     }
 
     public Text bloodDropsAmountText;
-    public int bloodDrops = 100;
-    public int GetbloodDrops()
-    {
-        return bloodDrops;
-    }
-    public void SetbloodDrops(int value)
-    {
-        bloodDrops = value;
-    }
 
     /*[Header("Pattern library (fill here or let script auto-fill a default set)")]
     public Pattern[] patterns;*/
@@ -80,8 +71,8 @@ public class WebDrawCoordinator : MonoBehaviour
         presetB.Init();
         presetC.Init();
         availableUpgrades = new List<Settings.Upgrade>(settings.UpgradeArray); // shallow copy
-        bloodDropsAmountText.text = bloodDrops.ToString();
-        bloodDrops++;
+        bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
+        GameManager.Instance.blood++;
         NewRound();
 
         
@@ -138,8 +129,16 @@ public class WebDrawCoordinator : MonoBehaviour
     int iC;
     public void NewRound(bool stringReuse = true)
     {
+        if (GameManager.Instance.blood<=0)
+        {
+            return;
+        }
 
-        if (stringReuse) bloodDrops--;
+        if (stringReuse)
+        {
+            GameManager.Instance.blood--;
+        }
+
         // reset all boards
         if (main) main.ResetGraph(stringReuse);
         if (presetA) presetA.ResetGraph();
@@ -184,19 +183,19 @@ public class WebDrawCoordinator : MonoBehaviour
         // compare main edges to each preset pattern
         if (Matches(_mainEdges, _patA) )
         {
-            Debug.Log(availableUpgrades[iA].upgradeType);
+            UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
             if(availableUpgrades[iA].isUnique) availableUpgrades.RemoveAt(iA);
             NewRound(false);
         }
         else if(Matches(_mainEdges, _patB))
         {
-            Debug.Log(availableUpgrades[iB].upgradeType);
+            UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
             if (availableUpgrades[iB].isUnique) availableUpgrades.RemoveAt(iB);
             NewRound(false);
         }
         else if(Matches(_mainEdges, _patC))
         {
-            Debug.Log(availableUpgrades[iC].upgradeType);
+            UpgradeManager.Instance.TryUpgrade(availableUpgrades[iA].upgradeType);
             if (availableUpgrades[iC].isUnique) availableUpgrades.RemoveAt(iC);
             NewRound(false);
         }
@@ -218,7 +217,7 @@ public class WebDrawCoordinator : MonoBehaviour
         CheckPresetVisual(presetB, _cgB, a, b);
         CheckPresetVisual(presetC, _cgC, a, b);
 
-        bloodDropsAmountText.text = bloodDrops.ToString();
+        bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
     }
 
     private void HandleMainReset()
@@ -229,7 +228,7 @@ public class WebDrawCoordinator : MonoBehaviour
         ResetPresetVisuals(presetA, _cgA);
         ResetPresetVisuals(presetB, _cgB);
         ResetPresetVisuals(presetC, _cgC);
-        bloodDropsAmountText.text = bloodDrops.ToString();
+        bloodDropsAmountText.text = GameManager.Instance.blood.ToString();
     }
 
     // ================== helpers ==================

@@ -1,48 +1,157 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LevelManagerUI : MonoBehaviour
 {
-
-    [SerializeField] private GameObject playerUI;
-    [SerializeField] private GameObject pauseUI;
+    [SerializeField] private GameObject gameMenu;
+    [SerializeField] private GameObject pauseMenu;
+    [SerializeField] private GameObject upgradeMenu;
+    [SerializeField] private TextMeshProUGUI bloodText;
+    [SerializeField] private TextMeshProUGUI waveText;
+    [SerializeField] private TextMeshProUGUI waveTextP;
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI timerTextP;
+    [SerializeField] private Slider hpSlider;
+    [SerializeField] private TextMeshProUGUI hpText;
 
 
     private void Awake()
     {
-        playerUI.SetActive(true);
-        pauseUI.SetActive(false);
+        // defensive
+        gameMenu.SetActive(true);
+        pauseMenu.SetActive(false);
+        upgradeMenu.SetActive(false);
+
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
     {
-        if (!pauseUI.activeSelf && Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            OpenPauseUI();
+            if (upgradeMenu.activeSelf)
+            {
+                CloseUpgradeMenu();
+            }
+            else if (pauseMenu.activeSelf)
+            {
+                ClosePauseMenu();
+            }
+            else
+            {
+                OpenPauseMenu();
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (upgradeMenu.activeSelf)
+            {
+                CloseUpgradeMenu();
+            }
+            else
+            {
+                OpenpUpgradeMenu();
+            }
         }
     }
 
-    public void OpenPauseUI()
+    public void OpenpUpgradeMenu()
     {
-        playerUI.SetActive(false);
-        Time.timeScale = 0;
+        gameMenu.SetActive(false);
+        pauseMenu.SetActive(false);
+        upgradeMenu.SetActive(true);
+
+        Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        pauseUI.SetActive(true);
     }
 
-    public void ClosePauseUI()
+    public void OpenPauseMenu()
     {
-        pauseUI.SetActive(false);
-        Time.timeScale = 1;
+        gameMenu.SetActive(false);
+        upgradeMenu.SetActive(false);
+        pauseMenu.SetActive(true);
+
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    public void ClosePauseMenu()
+    {
+        pauseMenu.SetActive(false);
+        upgradeMenu.SetActive(false);
+        gameMenu.SetActive(true);
+
+        Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        playerUI.SetActive(true);
+    }
+
+    // new close for upgrade menu (mirrors ClosePauseMenu behavior)
+    public void CloseUpgradeMenu()
+    {
+        upgradeMenu.SetActive(false);
+        pauseMenu.SetActive(false);
+        gameMenu.SetActive(true);
+
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void GoBackToMenu()
     {
+        // ensure timeScale is restored when leaving scene
+        Time.timeScale = 1f;
         SceneManager.LoadScene(0);
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
+    public void UpdateBloodText()
+    {
+        bloodText.text = "" + GameManager.Instance.blood;
+    }
+    public void UpdateWaveText(int currentWave)
+    {
+        waveText.text = "Wave: " + currentWave;
+        waveTextP.text = "Wave: " + currentWave;
+    }
+    public void UpdateTimerText(int seconds)
+    {
+        if (seconds < 0) seconds = 0;
+
+        int minutes = seconds / 60;
+        int secs = seconds % 60;
+
+        timerText.text = $"{minutes}:{secs:00}";
+        timerTextP.text = $"{minutes}:{secs:00}";
+    }
+    public void UpdateHPSlider()
+    {
+        if (hpSlider == null) return;
+
+        // Guard against invalid max
+        if (GameManager.Instance.player.maxHP <= 0f)
+        {
+            hpSlider.maxValue = 1f;
+            hpSlider.value = 0f;
+            return;
+        }
+
+        // Ensure slider max matches maxHP
+        if (!Mathf.Approximately(hpSlider.maxValue, GameManager.Instance.player.maxHP))
+            hpSlider.maxValue = GameManager.Instance.player.maxHP;
+
+        // Clamp current and set value
+        float clamped = Mathf.Clamp(GameManager.Instance.player.currentHP, 0f, GameManager.Instance.player.maxHP);
+        hpSlider.value = clamped;
+        hpText.text = GameManager.Instance.player.currentHP + ":" + GameManager.Instance.player.maxHP;
+    }
 }

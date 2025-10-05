@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
 
     [Header("References")]
     public SpiderController player;
+    public LevelManagerUI UIManager;
+    public EnemySpawnerManager spawnManager;
 
     #region Pools
 
@@ -27,16 +29,17 @@ public class GameManager : MonoBehaviour
     private ObjectPool<DestroyAfterParticles> deathParticlePool;
     [SerializeField] private DestroyAfterParticles deathParticlePrefab;
 
-    [SerializeField] private int stringsPoolSize = 10;
-    private ObjectPool<String> stringsPool;
-    [SerializeField] private String stringsPrefab;
+    [SerializeField] private int bloodPoolSize = 10;
+    private ObjectPool<Blood> bloodPool;
+    [SerializeField] private Blood bloodPrefab;
 
     [SerializeField] private int playerProjectilePoolSize = 10;
     private ObjectPool<PlayerProjectile> playerProjectilePool;
     [SerializeField] private PlayerProjectile playerProjectilePrefab;
     #endregion
 
-    public int strings = 0;
+    public int blood = 0;
+    public float timer = 0;
 
     private void Awake()
     {
@@ -50,9 +53,18 @@ public class GameManager : MonoBehaviour
     }
     private void Start()
     {
+        UIManager.UpdateBloodText();
+
         CreatePools();
     }
 
+    private void Update()
+    {
+        timer += Time.deltaTime;
+        UIManager.UpdateTimerText((int)timer);
+    }
+
+    #region Pools
     private void CreatePools()
     {
         projectilePools = new ObjectPool<EnemyProjectile>[projectilePrefabs.Length];
@@ -75,8 +87,8 @@ public class GameManager : MonoBehaviour
         deathParticlePool = new ObjectPool<DestroyAfterParticles>(deathParticlePrefab);
         deathParticlePool.Populate(deathParticlePoolSize);
 
-        stringsPool = new ObjectPool<String>(stringsPrefab);
-        stringsPool.Populate(stringsPoolSize);
+        bloodPool = new ObjectPool<Blood>(bloodPrefab);
+        bloodPool.Populate(bloodPoolSize);
 
         playerProjectilePool = new ObjectPool<PlayerProjectile>(playerProjectilePrefab);
         playerProjectilePool.Populate(playerProjectilePoolSize);
@@ -101,9 +113,9 @@ public class GameManager : MonoBehaviour
     {
         return deathParticlePool.GetPooledObject();
     }
-    public String GetString()
+    public Blood GetString()
     {
-        return stringsPool.GetPooledObject();
+        return bloodPool.GetPooledObject();
     }
     public PlayerProjectile GetPlayerProjectile()
     {
@@ -113,4 +125,6 @@ public class GameManager : MonoBehaviour
     {
         return enemyPrefabs;
     }
+    #endregion
+
 }

@@ -6,6 +6,9 @@ public class PlayerProjectile : MonoBehaviour
     [SerializeField] private int damage = 10;
     [SerializeField] private float lifetime = 5f;
     [SerializeField] private float speed = 6f;
+    [SerializeField, Range(0f, 360f)] private float ricochetAngleSpread = 180f; // spread for random direction
+
+    private bool ricocheted = false;
 
     private Coroutine lifeCoroutine;
 
@@ -19,6 +22,8 @@ public class PlayerProjectile : MonoBehaviour
     public void Init(int damage)
     {
         this.damage = damage;
+        ricocheted = false;
+
     }
 
     private void OnEnable()
@@ -73,7 +78,55 @@ public class PlayerProjectile : MonoBehaviour
             // Damage the player
             enemy.TakeDamage(damage);
 
-            // TODO: spawn explosion VFX / SFX here
+            if (UpgradeManager.Instance.HasLifeSteal)
+            {
+                GameManager.Instance.player.Heal(damage * UpgradeManager.Instance.lifeStealPercent);
+            }
+            if (UpgradeManager.Instance.HasSlowness)
+            {
+                enemy.ApplySlowness(UpgradeManager.Instance.slowness, UpgradeManager.Instance.slownessTime);
+            }
+            if (UpgradeManager.Instance.HasPoison)
+            {
+                enemy.ApplyPoison(UpgradeManager.Instance.poison, UpgradeManager.Instance.poisonTime);
+            }
+            if (UpgradeManager.Instance.HasRicochet && !ricocheted)
+            {
+                // mark ricochet used
+                ricocheted = true;
+
+                // choose a random direction within the spread
+                float halfSpread = ricochetAngleSpread * 0.5f;
+                float angleDeg = Random.Range(-halfSpread, halfSpread);
+                float angleRad = angleDeg * Mathf.Deg2Rad;
+
+                // random unit vector in 2D (rotate by random angle)
+                Vector2 dir = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad)).normalized;
+
+                // compute a distant target along that direction
+                Vector2 newTarget = (rb != null ? rb.position : (Vector2)transform.position) + dir * 5;
+
+                // restart movement toward newTarget
+                StopMovement();
+                moveCoroutine = StartCoroutine(MoveStraightToRoutine(newTarget));
+
+                // do not deactivate — allow the ricochet to continue and try to hit a second enemy
+                return;
+            }
+            if (UpgradeManager.Instance.HasExplosion)
+            {
+                Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, UpgradeManager.Instance.explosionRadius, GameManager.Instance.player.enemyLayer);
+
+                foreach (var c in hits)
+                {
+                    c.TryGetComponent<EnemyBase>(out var e);
+
+                    // Apply damage to each enemy
+                    // TODO: spawn explosion VFX / SFX here
+
+                    e.TakeDamage(damage);
+                }
+            }
 
             // Die (deactivate) immediately after applying damage
             gameObject.SetActive(false);

@@ -182,7 +182,7 @@ public class WebDrawLogic : MonoBehaviour
     {
         if (index < 0 || index >= buttons.Length) return;
         if (!CanConnect(_currentIndex, index)) return;
-        if (WebDrawCoordinator.Instance.bloodDrops < 1) return;
+        if (GameManager.Instance.blood < 1) return;
         var edge = new Edge(_currentIndex, index);
 
         // duplicate: blink existing line and do not move selection
@@ -195,7 +195,7 @@ public class WebDrawLogic : MonoBehaviour
 
         var from = _previousPoint;
         var to = buttons[index].transform as RectTransform;
-        WebDrawCoordinator.Instance.bloodDrops--;
+        GameManager.Instance.blood--;
         var line = DrawLineBetween(from, to);
         if (line == null) return;
 
@@ -216,7 +216,7 @@ public class WebDrawLogic : MonoBehaviour
         // recycle active lines
         foreach (var kv in _activeLines)
         {
-            if(drawable && reuseString) WebDrawCoordinator.Instance.bloodDrops++;
+            if(drawable && reuseString) GameManager.Instance.blood++;
             Recycle(kv.Value);
         }
         _activeLines.Clear();
