@@ -37,7 +37,7 @@ public class WebDrawLogic : MonoBehaviour
 
     // ---------- pooling ----------
     private readonly Queue<Image> _pool = new Queue<Image>();
-    private Transform _defaultParent;
+    public Transform _defaultParent;
 
     // active lines & edges
     private readonly Dictionary<Edge, Image> _activeLines = new Dictionary<Edge, Image>();
@@ -99,11 +99,6 @@ public class WebDrawLogic : MonoBehaviour
             }
                 
         }
-
-        // parent for pooled lines (no GetComponentInParent as requested)
-        _defaultParent = lineParent
-            ? lineParent
-            : (buttons.Length > 0 ? buttons[0].GetComponent<Canvas>()?.transform : null);
 
         // prewarm pool
         if (linePrefab && initialPoolSize > 0 && _defaultParent)
